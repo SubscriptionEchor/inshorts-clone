@@ -1,5 +1,5 @@
+import React, { useContext } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useContext } from 'react';
 import { NewsContext } from '../../API/Context';
 import NewsScreen from '../../screens/NewsScreen';
 
@@ -7,9 +7,9 @@ export default function HomeScreen() {
   const { darkTheme } = useContext(NewsContext);
 
   return (
-    <View style={[styles.container, { backgroundColor: darkTheme ? '#282c35' : '#fff' }]}>
-      <NewsScreen />
-    </View>
+      <View style={[styles.container, { backgroundColor: darkTheme ? '#282c35' : '#fff' }]}>
+        <NewsScreen />
+      </View>
   );
 }
 

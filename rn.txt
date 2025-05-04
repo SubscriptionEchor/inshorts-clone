@@ -1,4 +1,4 @@
-Project File Scan - Generated on 2025-05-05 00:29:56
+Project File Scan - Generated on 2025-05-05 03:37:12
 ================================================================================
 
 File: app.json
@@ -32,7 +32,8 @@ Type: .json
       "bundler": "metro"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-asset"
     ],
     "scheme": "inshorts-clone"
   }
@@ -98,31 +99,37 @@ Type: .json
   "dependencies": {
     "@expo-google-fonts/inter": "^0.2.3",
     "@expo/vector-icons": "^14.0.0",
-    "@react-navigation/bottom-tabs": "^6.5.11",
-    "@react-navigation/native": "^6.1.9",
+    "@react-navigation/bottom-tabs": "^7.3.11",
+    "@react-navigation/native": "^7.1.7",
     "@zhenyudu/react-native-snap-carousel": "^3.9.4",
     "axios": "^1.7.7",
     "date-fns": "^4.1.0",
     "expo": "~53.0.0",
-    "expo-constants": "~15.4.0",
-    "expo-font": "~11.10.0",
-    "expo-linking": "~6.2.0",
-    "expo-router": "~3.4.0",
-    "expo-status-bar": "~1.11.0",
+    "expo-constants": "~17.1.5",
+    "expo-file-system": "~18.1.9",
+    "expo-font": "~13.3.1",
+    "expo-linking": "~7.1.4",
+    "expo-router": "~5.0.5",
+    "expo-sharing": "~13.1.5",
+    "expo-splash-screen": "~0.30.8",
+    "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
-    "react-native": "0.79.0",
-    "react-native-gesture-handler": "~2.14.0",
+    "react-native": "0.79.2",
+    "react-native-gesture-handler": "~2.24.0",
     "react-native-loading-spinner-overlay": "^3.0.1",
-    "react-native-pager-view": "6.2.3",
-    "react-native-reanimated": "~3.6.0",
-    "react-native-safe-area-context": "4.8.2",
-    "react-native-screens": "~3.29.0",
-    "react-native-tab-view": "^4.0.1"
+    "react-native-pager-view": "6.7.1",
+    "react-native-reanimated": "~3.17.4",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.10.0",
+    "react-native-tab-view": "^4.0.1",
+    "react-native-view-shot": "4.0.3",
+    "@react-native-async-storage/async-storage": "2.1.2",
+    "expo-asset": "~11.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.23.7",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
-    "@types/react": "~18.2.45",
+    "@types/react": "~19.0.10",
     "babel-plugin-module-resolver": "^5.0.0",
     "typescript": "^5.3.0"
   },
@@ -131,6 +138,17 @@ Type: .json
     "react-dom": "19.0.0"
   },
   "private": true
+}
+
+
+================================================================================
+
+File: tsconfig.json
+Type: .json
+--------------------------------------------------------------------------------
+{
+  "compilerOptions": {},
+  "extends": "expo/tsconfig.base"
 }
 
 
@@ -208,6 +226,16 @@ Upon project creation, the ".expo" folder is already added to your ".gitignore" 
 
 ================================================================================
 
+File: .expo/devices.json
+Type: .json
+--------------------------------------------------------------------------------
+{
+  "devices": []
+}
+
+
+================================================================================
+
 File: types/env.d.ts
 Type: .ts
 --------------------------------------------------------------------------------
@@ -228,45 +256,40 @@ export {};
 File: app/_layout.tsx
 Type: .tsx
 --------------------------------------------------------------------------------
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
-import { SplashScreen } from 'expo-router';
 import Context from '../API/Context';
+import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
+import * as SplashScreen from 'expo-splash-screen';
 
-// Prevent splash screen from auto-hiding
+// Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  useFrameworkReady();
+    const [fontsLoaded] = useFonts({
+        'Inter-Regular': Inter_400Regular,
+        'Inter-Bold': Inter_700Bold,
+    });
 
-  const [fontsLoaded, fontError] = useFonts({
-    'Inter-Regular': Inter_400Regular,
-    'Inter-Bold': Inter_700Bold,
-  });
+    useEffect(() => {
+        if (fontsLoaded) {
+            // Hide splash screen once fonts are loaded
+            SplashScreen.hideAsync();
+        }
+    }, [fontsLoaded]);
 
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+    if (!fontsLoaded) {
+        return null;
     }
-  }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
-
-  return (
-    <Context>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </Context>
-  );
+    return (
+        <Context>
+            <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" />
+            </Stack>
+        </Context>
+    );
 }
-
 
 ================================================================================
 
@@ -329,8 +352,8 @@ const styles = StyleSheet.create({
 File: app/(tabs)/index.tsx
 Type: .tsx
 --------------------------------------------------------------------------------
+import React, { useContext } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useContext } from 'react';
 import { NewsContext } from '../../API/Context';
 import NewsScreen from '../../screens/NewsScreen';
 
@@ -338,9 +361,9 @@ export default function HomeScreen() {
   const { darkTheme } = useContext(NewsContext);
 
   return (
-    <View style={[styles.container, { backgroundColor: darkTheme ? '#282c35' : '#fff' }]}>
-      <NewsScreen />
-    </View>
+      <View style={[styles.container, { backgroundColor: darkTheme ? '#282c35' : '#fff' }]}>
+        <NewsScreen />
+      </View>
   );
 }
 
@@ -350,7 +373,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 });
-
 
 ================================================================================
 
@@ -390,43 +412,47 @@ import { useContext } from 'react';
 import { NewsContext } from '../../API/Context';
 
 export default function TabLayout() {
-  const { darkTheme } = useContext(NewsContext);
+    const { darkTheme } = useContext(NewsContext);
 
-  return (
-    <Tabs screenOptions={{
-      headerShown: false,
-      tabBarActiveTintColor: darkTheme ? '#007fff' : '#282c35',
-      tabBarInactiveTintColor: '#8E8E93',
-      tabBarStyle: {
-        backgroundColor: darkTheme ? '#282c35' : '#FFFFFF',
-        borderTopColor: darkTheme ? '#333' : '#E5E5EA',
-      },
-    }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, size }) => <Ionicons name="newspaper" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="discover"
-        options={{
-          title: 'Discover',
-          tabBarIcon: ({ color, size }) => <Ionicons name="compass" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ color, size }) => <Ionicons name="settings" size={size} color={color} />,
-        }}
-      />
-    </Tabs>
-  );
+    return (
+        <Tabs screenOptions={{
+            headerShown: false,
+            tabBarActiveTintColor: darkTheme ? '#007fff' : '#007AFF',
+            tabBarInactiveTintColor: '#8E8E93',
+            tabBarStyle: {
+                backgroundColor: darkTheme ? '#282c35' : '#FFFFFF',
+                borderTopColor: darkTheme ? '#333' : '#E5E5EA',
+                height: 60,
+            },
+            tabBarLabelStyle: {
+                fontSize: 12,
+                marginBottom: 5,
+            },
+        }}>
+            <Tabs.Screen
+                name="index"
+                options={{
+                    title: 'Home',
+                    tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
+                }}
+            />
+            <Tabs.Screen
+                name="discover"
+                options={{
+                    title: 'Discover',
+                    tabBarIcon: ({ color, size }) => <Ionicons name="compass" size={size} color={color} />,
+                }}
+            />
+            <Tabs.Screen
+                name="settings"
+                options={{
+                    title: 'Settings',
+                    tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
+                }}
+            />
+        </Tabs>
+    );
 }
-
 
 ================================================================================
 
@@ -552,56 +578,142 @@ File: screens/NewsScreen.tsx
 Type: .tsx
 --------------------------------------------------------------------------------
 import React, { useContext, useState } from 'react';
-import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions,
+  StyleSheet,
+  View,
+  StatusBar,
+  Text,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity
+} from 'react-native';
+import { useRouter } from 'expo-router';
 import { NewsContext } from '../API/Context';
 import SingleNews from '../components/SingleNews';
 import Carousel from '@zhenyudu/react-native-snap-carousel';
 
 const windowHeight = Dimensions.get('window').height;
+const windowWidth = Dimensions.get('window').width;
 
 const NewsScreen = () => {
+  const router = useRouter();
   const { loading, news, darkTheme } = useContext(NewsContext);
   const articles = news?.articles;
   const [activeIndex, setActiveIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState('My Feed');
+
+  const goToPage = (page) => {
+    router.push(page);
+  };
+
+  const tabs = [
+    { id: 'feed', label: 'My Feed' },
+    { id: 'sale', label: 'Instawoooow Sale' },
+    { id: 'match', label: 'Match Center' },
+    { id: 'videos', label: 'Videos' },
+  ];
 
   return (
-    <View style={styles.carousel}>
-      {loading ? (
-        <>
-          <ActivityIndicator color={darkTheme ? "white" : 'lightgray'} size="large" />
-        </>
-      ) : (
-        <>
-          {articles && (
-            <Carousel
-              data={articles}
-              renderItem={({ item, index }) => (
-                <SingleNews item={item} index={index} darkTheme={darkTheme} />
-              )}
-              sliderHeight={300}
-              vertical={true}
-              itemHeight={windowHeight}
-              onSnapToItem={(index) => setActiveIndex(index)}
-            />
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+
+        {/* Tab Navigation - Now using the exact design from the screenshots */}
+        <View style={styles.tabContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.tabTextContainer}>
+              {tabs.map((tab) => (
+                  <TouchableOpacity
+                      key={tab.id}
+                      onPress={() => setActiveTab(tab.label)}
+                  >
+                    <Text
+                        style={activeTab === tab.label ? styles.activeTabText : styles.inactiveTabText}
+                    >
+                      {tab.label}
+                    </Text>
+                  </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* Carousel for news swiping */}
+        <View style={styles.carousel}>
+          {loading ? (
+              <ActivityIndicator color="#007AFF" size="large" />
+          ) : (
+              articles && articles.length > 0 ? (
+                  <Carousel
+                      data={articles}
+                      renderItem={({ item, index }) => (
+                          <SingleNews item={item} index={index} darkTheme={darkTheme} />
+                      )}
+                      sliderHeight={windowHeight - 140} // Adjusted height
+                      itemHeight={windowHeight - 140}   // Adjusted height
+                      vertical={true}
+                      onSnapToItem={(index) => setActiveIndex(index)}
+                      enableMomentum={true}
+                      decelerationRate={0.9}
+                      inactiveSlideOpacity={1}
+                      inactiveSlideScale={1}
+                  />
+              ) : (
+                  <View style={styles.noContent}>
+                    <Text>No articles available</Text>
+                  </View>
+              )
           )}
-        </>
-      )}
-    </View>
+        </View>
+      </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#000', // Set to black for status bar area
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  tabContainer: {
+    backgroundColor: '#000',
+    height: 50,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+  },
+  tabTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 5,
+    height: 50,
+  },
+  activeTabText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '500',
+    marginRight: 20,
+  },
+  inactiveTabText: {
+    color: '#999',
+    fontSize: 16,
+    marginRight: 20,
+  },
   carousel: {
     flex: 1,
-    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  noContent: {
+    flex: 1,
     justifyContent: 'center',
-    width: '100%',
-    height: '100%'
+    alignItems: 'center',
   },
 });
 
 export default NewsScreen;
-
 
 ================================================================================
 
@@ -732,18 +844,25 @@ const styles = StyleSheet.create({
 File: components/SingleNews.tsx
 Type: .tsx
 --------------------------------------------------------------------------------
-import React from 'react';
-import { 
-  Dimensions, 
-  Image, 
-  ImageBackground, 
-  StyleSheet, 
-  Text, 
-  TouchableOpacity, 
-  View 
+import React, { useState } from 'react';
+import {
+  Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Share,
+  Alert,
+  ViewShot,
+  Platform
 } from 'react-native';
 import { Linking } from 'react-native';
 import { format, parseISO } from 'date-fns';
+import { Ionicons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { captureRef } from 'react-native-view-shot';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -756,6 +875,10 @@ type NewsItem = {
   author: string;
   content: string;
   url: string;
+  source: {
+    id: string;
+    name: string;
+  };
 };
 
 type SingleNewsProps = {
@@ -765,120 +888,188 @@ type SingleNewsProps = {
 };
 
 const SingleNews = ({ item, index, darkTheme }: SingleNewsProps) => {
-  const date = parseISO(item?.publishedAt);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const viewShotRef = React.useRef(null);
+
+  const date = parseISO(item?.publishedAt || new Date().toISOString());
   const formattedDate = format(date, 'yyyy-MM-dd');
-  
+  const timeAgo = 'few hours ago';
+
+  // Calculate if there's enough content for a quote section (similar to image 1)
+  const hasQuoteSection = item?.content && item.content.length > 70;
+
+  // Toggle bookmark
+  const toggleBookmark = () => {
+    setIsBookmarked(!isBookmarked);
+    Alert.alert(
+        isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks',
+        '',
+        [{ text: 'OK' }],
+        { cancelable: true }
+    );
+    // In a real app, you'd save this to AsyncStorage or a database
+  };
+
+  // Share news card
+  const shareNews = async () => {
+    try {
+      // First option: Basic share
+      const result = await Share.share({
+        message: `${item.title}\n\n${item.description}\n\nRead more: ${item.url}`,
+        title: item.title,
+      });
+
+      // Advanced implementation would capture the view as an image and share that
+      // This requires additional setup with react-native-view-shot and expo-sharing
+
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <Image
-        style={styles.image}
-        source={{ uri: item?.urlToImage }}
-        onError={(err) => console.error("Error Setting Image URI: ", err.nativeEvent.error)}
-      />
-      <View style={{ ...styles.description, backgroundColor: darkTheme ? '#282c35' : 'white' }}>
-        <Text style={{ ...styles.title, color: darkTheme ? 'white' : 'gray' }}>{item?.title}</Text>
-        <Text style={{ ...styles.content, color: darkTheme ? 'white' : 'gray' }}>{item?.description}</Text>
-        <Text style={{ ...styles.content, color: darkTheme ? 'white' : 'gray' }}>
-          {formattedDate}
-        </Text>
-      </View>
-      <View style={{
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'flex-start',
-        width: windowWidth,
-      }}>
-        <View style={styles.credit}>
-          <Text style={{ ...styles.source, color: darkTheme ? 'white' : 'gray' }}>Shot by </Text>
-          <Text style={{ ...styles.source, color: darkTheme ? 'white' : 'gray' }}>{item.author ?? "unknown"}</Text>
+      <View style={styles.container} ref={viewShotRef}>
+        {/* Image for article if available */}
+        {item?.urlToImage && (
+            <Image
+                style={styles.image}
+                source={{ uri: item?.urlToImage }}
+                onError={(err) => console.error("Error Setting Image URI: ", err.nativeEvent.error)}
+            />
+        )}
+
+        <View style={styles.contentContainer}>
+          {/* Logo and action buttons */}
+          <View style={styles.actionContainer}>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>inshorts</Text>
+            </View>
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={toggleBookmark}
+              >
+                <Ionicons
+                    name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                    size={22}
+                    color="#000"
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={shareNews}
+              >
+                <Ionicons name="share-social-outline" size={22} color="#000" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Headline */}
+          <Text style={styles.headline}>{item?.title}</Text>
+
+          {/* Body text */}
+          <Text style={styles.bodyText}>{item?.description}</Text>
+
+          {/* Attribution line */}
+          <Text style={styles.attribution}>
+            {timeAgo} | {item.author || "Unknown"} | {item.source?.name || "News"}
+          </Text>
+
+          {/* Optional footer content/quote as seen in the screenshots */}
+          {hasQuoteSection && (
+              <View style={styles.quoteContainer}>
+                <Text style={styles.quoteText}>
+                  '{item.content?.slice(0, 60)}...'
+                </Text>
+                <Text style={styles.quoteAttribution}>
+                  {item.source?.name || "Source"} further stated
+                </Text>
+              </View>
+          )}
         </View>
       </View>
-      <ImageBackground
-        blurRadius={30}
-        source={{ uri: item.urlToImage }}
-        style={styles.footer}
-      >
-        <TouchableOpacity
-          style={{
-            padding: 2,
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            height: "100%",
-          }}
-          onPress={() => Linking.openURL(item?.url)}
-        >
-          <Text style={{ fontSize: 15, color: darkTheme ? 'white' : 'gray' }}>
-            {item?.content?.slice(0, 45)}
-          </Text>
-          <Text style={{ fontSize: 17, fontWeight: 'bold', color: darkTheme ? 'white' : 'gray' }}>
-            Read More
-          </Text>
-        </TouchableOpacity>
-      </ImageBackground>
-    </View>
   );
 };
 
-export default SingleNews;
-
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'flex-start',
-    alignItems: "center",
+    height: windowHeight - 120, // Adjust for tab bars
     width: windowWidth,
-    height: windowHeight,
+    backgroundColor: '#fff',
     flexDirection: 'column',
-    padding: 10,
-    gap: 10,
   },
   image: {
     width: windowWidth,
-    height: '40%',
-    borderRadius: 5,
-    marginTop: 10,
+    height: windowHeight * 0.35,
     resizeMode: 'cover',
-    marginRight: 10,
   },
-  title: {
-    marginTop: 10,
-    fontSize: 17,
-    fontWeight: '100'
-  },
-  content: {
-    fontSize: 28,
-    fontWeight: '700',
-    height: 'auto',
-    width: 'auto',
-    padding: 7,
+  contentContainer: {
     flex: 1,
+    padding: 15,
+    position: 'relative',
   },
-  description: {
-    fontSize: 30,
-    fontWeight: '800',
-  },
-  source: {
-    fontSize: 15,
-    fontWeight: '300',
-    textAlign: 'center'
-  },
-  credit: {
-    flex: 1,
+  actionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'flex-start',
-    justifyContent: "center",
-    paddingLeft: 12,
+    marginBottom: 10,
+    zIndex: 10,
   },
-  footer: {
-    height: 120,
-    width: windowWidth,
-    position: 'absolute',
-    borderRadius: 5,
-    bottom: 2,
-    backgroundColor: '#d7be69',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+  logoContainer: {
+    backgroundColor: '#f73131',
+    padding: 5,
+    borderRadius: 4,
+  },
+  logoText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+  },
+  actionButton: {
+    marginLeft: 15,
+    padding: 5, // Make touch target larger
+  },
+  headline: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#000',
+    lineHeight: 26,
+  },
+  bodyText: {
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 22,
+    marginBottom: 15,
+  },
+  attribution: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 'auto',
+  },
+  quoteContainer: {
+    backgroundColor: '#333',
+    padding: 15,
+    marginTop: 15,
+    borderRadius: 4,
+  },
+  quoteText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  quoteAttribution: {
+    color: '#ccc',
+    fontSize: 14,
+    marginTop: 5,
   }
 });
 
+export default SingleNews;
 
 ================================================================================
 
@@ -1091,7 +1282,7 @@ export const sources = [
 
 // Using a free news API for the clone - you might need to replace with your own API key
 export const BASE_URL = "https://newsapi.org/v2";
-export const API_KEY = "YOUR_API_KEY"; // Replace with your news API key
+export const API_KEY = "dfcada130cb747099bdadec698a9c1cc"; // Replace with your news API key
 
 export const getNewsAPI = (category: string, country = "in") => {
   return `${BASE_URL}/top-headlines?country=${country}&category=${category}&apiKey=${API_KEY}`;
@@ -1110,18 +1301,21 @@ Type: .tsx
 import React, { createContext, useEffect, useState, ReactNode } from "react";
 import axios from "axios";
 import { getNewsAPI, getSourceAPI } from "./api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+type NewsItem = {
+  source: { id: string; name: string };
+  author: string;
+  title: string;
+  description: string;
+  url: string;
+  urlToImage: string;
+  publishedAt: string;
+  content: string;
+};
 
 type NewsType = {
-  articles: Array<{
-    source: { id: string; name: string };
-    author: string;
-    title: string;
-    description: string;
-    url: string;
-    urlToImage: string;
-    publishedAt: string;
-    content: string;
-  }>;
+  articles: NewsItem[];
   status: string;
   totalResults: number;
 };
@@ -1132,11 +1326,14 @@ type NewsContextType = {
   index: number;
   darkTheme: boolean;
   loading: boolean;
+  bookmarks: string[]; // Array of article URLs that are bookmarked
   setCategory: (category: string) => void;
   setIndex: (index: number) => void;
   fetchNews: (category?: string) => Promise<void>;
   setSource: (source: string) => void;
   setDarkTheme: (darkTheme: boolean) => void;
+  toggleBookmark: (url: string) => void;
+  isBookmarked: (url: string) => boolean;
 };
 
 export const NewsContext = createContext<NewsContextType>({} as NewsContextType);
@@ -1152,13 +1349,67 @@ const Context = ({ children }: ContextProviderProps) => {
   const [source, setSource] = useState("bbc-news");
   const [index, setIndex] = useState(1);
   const [darkTheme, setDarkTheme] = useState(false);
+  const [bookmarks, setBookmarks] = useState<string[]>([]);
+
+  // Load saved bookmarks and theme on startup
+  useEffect(() => {
+    const loadSavedSettings = async () => {
+      try {
+        // Load saved theme preference
+        const savedTheme = await AsyncStorage.getItem('darkTheme');
+        if (savedTheme !== null) {
+          setDarkTheme(savedTheme === 'true');
+        }
+
+        // Load saved bookmarks
+        const savedBookmarks = await AsyncStorage.getItem('bookmarks');
+        if (savedBookmarks !== null) {
+          setBookmarks(JSON.parse(savedBookmarks));
+        }
+      } catch (error) {
+        console.error('Error loading saved settings:', error);
+      }
+    };
+
+    loadSavedSettings();
+  }, []);
+
+  // Save theme preference when it changes
+  useEffect(() => {
+    const saveThemePreference = async () => {
+      try {
+        await AsyncStorage.setItem('darkTheme', darkTheme.toString());
+      } catch (error) {
+        console.error('Error saving theme preference:', error);
+      }
+    };
+
+    saveThemePreference();
+  }, [darkTheme]);
+
+  // Save bookmarks when they change
+  useEffect(() => {
+    const saveBookmarks = async () => {
+      try {
+        await AsyncStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+      } catch (error) {
+        console.error('Error saving bookmarks:', error);
+      }
+    };
+
+    saveBookmarks();
+  }, [bookmarks]);
 
   const fetchNews = async (rest: string = category) => {
     setLoading(true);
     try {
       const response = await axios.get(getNewsAPI(rest));
-      setNews(response.data);
-      setIndex(1);
+      if (response.data && response.data.articles) {
+        setNews(response.data);
+        setIndex(1);
+      } else {
+        console.error('Invalid response format:', response.data);
+      }
     } catch (error) {
       console.error(`Error Fetching News: `, error);
     } finally {
@@ -1170,14 +1421,33 @@ const Context = ({ children }: ContextProviderProps) => {
     setLoading(true);
     try {
       const response = await axios.get(getSourceAPI(source));
-      if (!response) throw new Error("No Response");
-      setNews(response.data);
-      setIndex(1);
+      if (response.data && response.data.articles) {
+        setNews(response.data);
+        setIndex(1);
+      } else {
+        console.error('Invalid response format:', response.data);
+      }
     } catch (error) {
       console.error(`Error Fetching News from Source: `, error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Function to toggle bookmark status
+  const toggleBookmark = (url: string) => {
+    if (bookmarks.includes(url)) {
+      // Remove from bookmarks
+      setBookmarks(bookmarks.filter(bookmark => bookmark !== url));
+    } else {
+      // Add to bookmarks
+      setBookmarks([...bookmarks, url]);
+    }
+  };
+
+  // Check if a URL is bookmarked
+  const isBookmarked = (url: string): boolean => {
+    return bookmarks.includes(url);
   };
 
   useEffect(() => {
@@ -1189,38 +1459,40 @@ const Context = ({ children }: ContextProviderProps) => {
   }, [source]);
 
   return (
-    <NewsContext.Provider
-      value={{
-        news,
-        category,
-        index,
-        darkTheme,
-        loading,
-        setCategory,
-        setIndex,
-        fetchNews,
-        setSource,
-        setDarkTheme,
-      }}
-    >
-      {children}
-    </NewsContext.Provider>
+      <NewsContext.Provider
+          value={{
+            news,
+            category,
+            index,
+            darkTheme,
+            loading,
+            bookmarks,
+            setCategory,
+            setIndex,
+            fetchNews,
+            setSource,
+            setDarkTheme,
+            toggleBookmark,
+            isBookmarked,
+          }}
+      >
+        {children}
+      </NewsContext.Provider>
   );
 };
 
 export default Context;
-
 
 ================================================================================
 
 
 Scan Summary
 ================================================================================
-Total files scanned: 22
+Total files scanned: 24
 
 Files by type:
 .js: 3 files
-.json: 3 files
+.json: 5 files
 .md: 1 files
 .ts: 3 files
 .tsx: 11 files
