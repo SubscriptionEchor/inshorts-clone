@@ -1,0 +1,1227 @@
+Project File Scan - Generated on 2025-05-05 00:29:56
+================================================================================
+
+File: app.json
+Type: .json
+--------------------------------------------------------------------------------
+{
+  "expo": {
+    "name": "Inshorts Clone",
+    "slug": "inshorts-clone",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "scheme": "inshorts-clone"
+  }
+}
+
+
+================================================================================
+
+File: index.js
+Type: .js
+--------------------------------------------------------------------------------
+import { registerRootComponent } from 'expo';
+
+import App from './App';
+
+// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
+// It also ensures that whether you load the app in Expo Go or in a native build,
+// the environment is set up appropriately
+registerRootComponent(App);
+
+
+================================================================================
+
+File: babel.config.js
+Type: .js
+--------------------------------------------------------------------------------
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: [
+      'react-native-reanimated/plugin',
+      'expo-router/babel',
+      '@babel/plugin-proposal-export-namespace-from',
+      [
+        'module-resolver',
+        {
+          alias: {
+            '@': './',
+          },
+        },
+      ],
+    ],
+  };
+};
+
+
+================================================================================
+
+File: package.json
+Type: .json
+--------------------------------------------------------------------------------
+{
+  "name": "inshorts-clone",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@expo-google-fonts/inter": "^0.2.3",
+    "@expo/vector-icons": "^14.0.0",
+    "@react-navigation/bottom-tabs": "^6.5.11",
+    "@react-navigation/native": "^6.1.9",
+    "@zhenyudu/react-native-snap-carousel": "^3.9.4",
+    "axios": "^1.7.7",
+    "date-fns": "^4.1.0",
+    "expo": "~53.0.0",
+    "expo-constants": "~15.4.0",
+    "expo-font": "~11.10.0",
+    "expo-linking": "~6.2.0",
+    "expo-router": "~3.4.0",
+    "expo-status-bar": "~1.11.0",
+    "react": "19.0.0",
+    "react-native": "0.79.0",
+    "react-native-gesture-handler": "~2.14.0",
+    "react-native-loading-spinner-overlay": "^3.0.1",
+    "react-native-pager-view": "6.2.3",
+    "react-native-reanimated": "~3.6.0",
+    "react-native-safe-area-context": "4.8.2",
+    "react-native-screens": "~3.29.0",
+    "react-native-tab-view": "^4.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.7",
+    "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
+    "@types/react": "~18.2.45",
+    "babel-plugin-module-resolver": "^5.0.0",
+    "typescript": "^5.3.0"
+  },
+  "overrides": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "private": true
+}
+
+
+================================================================================
+
+File: rn.txt
+Type: .txt
+--------------------------------------------------------------------------------
+
+
+================================================================================
+
+File: App.js
+Type: .js
+--------------------------------------------------------------------------------
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, View } from 'react-native';
+
+export default function App() {
+  return (
+    <View style={styles.container}>
+      <Text>Open up App.js to start working on your app!</Text>
+      <StatusBar style="auto" />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+
+
+================================================================================
+
+File: .expo/settings.json
+Type: .json
+--------------------------------------------------------------------------------
+{
+  "hostType": "lan",
+  "lanType": "ip",
+  "dev": true,
+  "minify": false,
+  "urlRandomness": null,
+  "https": false,
+  "scheme": null
+}
+
+
+================================================================================
+
+File: .expo/README.md
+Type: .md
+--------------------------------------------------------------------------------
+> Why do I have a folder named ".expo" in my project?
+
+The ".expo" folder is created when an Expo project is started using "expo start" command.
+
+> What do the files contain?
+
+- "devices.json": contains information about devices that have recently opened this project. This is used to populate the "Development sessions" list in your development builds.
+- "packager-info.json": contains port numbers and process PIDs that are used to serve the application to the mobile device/simulator.
+- "settings.json": contains the server configuration that is used to serve the application manifest.
+
+> Should I commit the ".expo" folder?
+
+No, you should not share the ".expo" folder. It does not contain any information that is relevant for other developers working on the project, it is specific to your machine.
+
+Upon project creation, the ".expo" folder is already added to your ".gitignore" file.
+
+
+================================================================================
+
+File: types/env.d.ts
+Type: .ts
+--------------------------------------------------------------------------------
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      EXPO_PUBLIC_API_URL: string;
+      EXPO_PUBLIC_API_KEY: string;
+    }
+  }
+}
+
+export {};
+
+
+================================================================================
+
+File: app/_layout.tsx
+Type: .tsx
+--------------------------------------------------------------------------------
+import { useEffect } from 'react';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useFrameworkReady } from '@/hooks/useFrameworkReady';
+import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
+import { SplashScreen } from 'expo-router';
+import Context from '../API/Context';
+
+// Prevent splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
+
+export default function RootLayout() {
+  useFrameworkReady();
+
+  const [fontsLoaded, fontError] = useFonts({
+    'Inter-Regular': Inter_400Regular,
+    'Inter-Bold': Inter_700Bold,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
+  return (
+    <Context>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+      <StatusBar style="auto" />
+    </Context>
+  );
+}
+
+
+================================================================================
+
+File: app/(tabs)/settings.tsx
+Type: .tsx
+--------------------------------------------------------------------------------
+import { View, Text, StyleSheet, Switch } from 'react-native';
+import { useContext } from 'react';
+import { NewsContext } from '../../API/Context';
+
+export default function SettingsScreen() {
+  const { darkTheme, setDarkTheme } = useContext(NewsContext);
+
+  return (
+    <View style={[styles.container, { backgroundColor: darkTheme ? '#282c35' : '#fff' }]}>
+      <Text style={[styles.title, { color: darkTheme ? '#fff' : '#1a1a1a' }]}>Settings</Text>
+      <View style={styles.settingItem}>
+        <Text style={[styles.settingText, { color: darkTheme ? '#fff' : '#1a1a1a' }]}>
+          Dark Mode
+        </Text>
+        <Switch
+          value={darkTheme}
+          onValueChange={setDarkTheme}
+          trackColor={{ false: '#767577', true: '#81b0ff' }}
+          thumbColor={darkTheme ? '#007AFF' : '#f4f3f4'}
+        />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  title: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 24,
+    marginBottom: 20,
+    color: '#1a1a1a',
+  },
+  settingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#ccc',
+  },
+  settingText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 18,
+  },
+});
+
+
+================================================================================
+
+File: app/(tabs)/index.tsx
+Type: .tsx
+--------------------------------------------------------------------------------
+import { View, StyleSheet } from 'react-native';
+import { useContext } from 'react';
+import { NewsContext } from '../../API/Context';
+import NewsScreen from '../../screens/NewsScreen';
+
+export default function HomeScreen() {
+  const { darkTheme } = useContext(NewsContext);
+
+  return (
+    <View style={[styles.container, { backgroundColor: darkTheme ? '#282c35' : '#fff' }]}>
+      <NewsScreen />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+});
+
+
+================================================================================
+
+File: app/(tabs)/discover.tsx
+Type: .tsx
+--------------------------------------------------------------------------------
+import { View, StyleSheet } from 'react-native';
+import DiscoverScreen from '../../screens/DiscoverScreen';
+import { useContext } from 'react';
+import { NewsContext } from '../../API/Context';
+
+export default function DiscoverTab() {
+  const { darkTheme } = useContext(NewsContext);
+
+  return (
+    <View style={[styles.container, { backgroundColor: darkTheme ? '#282c35' : '#fff' }]}>
+      <DiscoverScreen />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  }
+});
+
+
+================================================================================
+
+File: app/(tabs)/_layout.tsx
+Type: .tsx
+--------------------------------------------------------------------------------
+import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useContext } from 'react';
+import { NewsContext } from '../../API/Context';
+
+export default function TabLayout() {
+  const { darkTheme } = useContext(NewsContext);
+
+  return (
+    <Tabs screenOptions={{
+      headerShown: false,
+      tabBarActiveTintColor: darkTheme ? '#007fff' : '#282c35',
+      tabBarInactiveTintColor: '#8E8E93',
+      tabBarStyle: {
+        backgroundColor: darkTheme ? '#282c35' : '#FFFFFF',
+        borderTopColor: darkTheme ? '#333' : '#E5E5EA',
+      },
+    }}>
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color, size }) => <Ionicons name="newspaper" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="discover"
+        options={{
+          title: 'Discover',
+          tabBarIcon: ({ color, size }) => <Ionicons name="compass" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color, size }) => <Ionicons name="settings" size={size} color={color} />,
+        }}
+      />
+    </Tabs>
+  );
+}
+
+
+================================================================================
+
+File: screens/DiscoverScreen.tsx
+Type: .tsx
+--------------------------------------------------------------------------------
+import React, { useContext } from 'react';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { NewsContext } from '../API/Context';
+import Carousel from '@zhenyudu/react-native-snap-carousel';
+import { categories, sources } from '../API/api';
+import Search from '../components/Search';
+
+const windowWidth = Dimensions.get('window').width;
+
+const DiscoverScreen = () => {
+  const { setCategory, darkTheme, setSource } = useContext(NewsContext);
+  const SLIDE_WIDTH = Math.round(windowWidth / 3.5);
+
+  return (
+    <View style={styles.container}>
+      <Search />
+      <Text style={{ ...styles.subtitle, paddingTop: 10, color: darkTheme ? 'white' : 'gray' }}>Categories</Text>
+      <Carousel
+        data={categories}
+        renderItem={({ item, index }) => (
+          <TouchableOpacity
+            onPress={() => setCategory(item?.name)}
+            style={{ ...styles.categoriesStyles }}>
+            <Image
+              source={{ uri: item?.pic }}
+              style={styles.categoryImage}
+            />
+            <Text
+              style={{ ...styles.categoriesName, color: darkTheme ? 'white' : 'gray' }}
+            >{item?.name}</Text>
+          </TouchableOpacity>
+        )}
+        sliderWidth={windowWidth}
+        itemWidth={SLIDE_WIDTH}
+        horizontal={true}
+        activeSlideAlignment='start'
+        inactiveSlideScale={1}
+        inactiveSlideOpacity={2}
+      />
+      <Text style={{ ...styles.subtitle, color: darkTheme ? 'white' : 'gray' }}>
+        Sources
+      </Text>
+      <View style={styles.sources}>
+        {sources.map(s => (
+          <TouchableOpacity
+            onPress={() => setSource(s?.id)}
+            key={s?.id}
+            style={styles.sourceContainer}
+          >
+            <Image
+              source={{ uri: s?.pic }}
+              style={styles.sourceImage}
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+export default DiscoverScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 10,
+    alignItems: 'center',
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    paddingBottom: 8,
+    marginHorizontal: 5,
+    borderBottomColor: '#007fff',
+    borderBottomWidth: 5,
+    alignSelf: 'flex-start',
+    borderRadius: 10,
+  },
+  categoriesName: {
+    textAlign: 'center',
+    fontSize: 18,
+  },
+  categoriesStyles: {
+    height: 150,
+    margin: 10,
+    alignItems: 'center',
+    justifyContent: 'space-evenly'
+  },
+  categoryImage: {
+    height: '40%',
+    width: '100%',
+    resizeMode: 'contain'
+  },
+  sourceContainer: {
+    height: 150,
+    width: "40%",
+    borderRadius: 10,
+    margin: 15,
+    backgroundColor: '#cc313d'
+  },
+  sources: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingVertical: 15,
+  },
+  sourceImage: {
+    height: '100%',
+    borderRadius: 10,
+    resizeMode: 'cover'
+  }
+});
+
+
+================================================================================
+
+File: screens/NewsScreen.tsx
+Type: .tsx
+--------------------------------------------------------------------------------
+import React, { useContext, useState } from 'react';
+import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
+import { NewsContext } from '../API/Context';
+import SingleNews from '../components/SingleNews';
+import Carousel from '@zhenyudu/react-native-snap-carousel';
+
+const windowHeight = Dimensions.get('window').height;
+
+const NewsScreen = () => {
+  const { loading, news, darkTheme } = useContext(NewsContext);
+  const articles = news?.articles;
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  return (
+    <View style={styles.carousel}>
+      {loading ? (
+        <>
+          <ActivityIndicator color={darkTheme ? "white" : 'lightgray'} size="large" />
+        </>
+      ) : (
+        <>
+          {articles && (
+            <Carousel
+              data={articles}
+              renderItem={({ item, index }) => (
+                <SingleNews item={item} index={index} darkTheme={darkTheme} />
+              )}
+              sliderHeight={300}
+              vertical={true}
+              itemHeight={windowHeight}
+              onSnapToItem={(index) => setActiveIndex(index)}
+            />
+          )}
+        </>
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  carousel: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%'
+  },
+});
+
+export default NewsScreen;
+
+
+================================================================================
+
+File: components/Search.tsx
+Type: .tsx
+--------------------------------------------------------------------------------
+import React, { useContext, useState } from 'react';
+import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { NewsContext } from '../API/Context';
+import { Ionicons } from '@expo/vector-icons';
+import SingleNews from './SingleNews';
+
+const Search = () => {
+  const { news, darkTheme } = useContext(NewsContext);
+  const articles = news?.articles;
+  const [searchResults, setSearchResults] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentNews, setCurrentNews] = useState({});
+
+  const handleSearch = (text) => {
+    if (!text) {
+      setSearchResults([]);
+      return;
+    }
+    setSearchResults(articles.filter((q) => q?.title?.includes(text)));
+  };
+
+  const handleModal = (n) => {
+    setModalVisible(true),
+    setCurrentNews(n);
+  };
+
+  return (
+    <View style={styles.container}>
+      <TextInput
+        style={{
+          ...styles.search,
+          backgroundColor: darkTheme ? '#444' : 'lightgray',
+          color: darkTheme ? 'white' : 'black'
+        }}
+        onChangeText={(text) => handleSearch(text)}
+        placeholder='Search for News'
+        placeholderTextColor={darkTheme ? "#aaa" : 'gray'}
+      />
+      <View style={styles.searchResults}>
+        {searchResults.slice(0, 10).map((n) => (
+          <TouchableOpacity
+            key={n.title}
+            activeOpacity={.9}
+            onPress={() => handleModal(n)}
+          >
+            <Text
+              style={{
+                ...styles.singleResult,
+                backgroundColor: darkTheme ? "black" : "white",
+                color: darkTheme ? "white" : 'gray'
+              }}
+            >
+              {n.title}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <Modal
+        animationType='slide'
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(!modalVisible)}
+      >
+        <TouchableOpacity
+          onPress={() => setModalVisible(!modalVisible)}
+          style={{
+            position: 'absolute',
+            zIndex: 2,
+            right: 0,
+            margin: 20,
+            marginTop: 40
+          }}
+        >
+          <Ionicons name="close-circle" size={30} color={darkTheme ? "white" : "black"} />
+        </TouchableOpacity>
+        <View
+          style={{
+            height: '100%',
+          }}
+        >
+          <SingleNews item={currentNews} darkTheme={darkTheme} index={0} />
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+export default Search;
+
+const styles = StyleSheet.create({
+  search: {
+    height: '100%',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    fontSize: 15,
+    marginBottom: 15,
+  },
+  container: {
+    width: '100%',
+    height: 50,
+    position: 'relative'
+  },
+  searchResults: {
+    position: 'absolute',
+    zIndex: 1,
+    top: 80,
+    width: '100%'
+  },
+  singleResult: {
+    borderRadius: 5,
+    padding: 10,
+    margin: 0.5,
+    shadowColor: 'black',
+    elevation: 5,
+  }
+});
+
+
+================================================================================
+
+File: components/SingleNews.tsx
+Type: .tsx
+--------------------------------------------------------------------------------
+import React from 'react';
+import { 
+  Dimensions, 
+  Image, 
+  ImageBackground, 
+  StyleSheet, 
+  Text, 
+  TouchableOpacity, 
+  View 
+} from 'react-native';
+import { Linking } from 'react-native';
+import { format, parseISO } from 'date-fns';
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
+
+type NewsItem = {
+  title: string;
+  description: string;
+  urlToImage: string;
+  publishedAt: string;
+  author: string;
+  content: string;
+  url: string;
+};
+
+type SingleNewsProps = {
+  item: NewsItem;
+  index: number;
+  darkTheme: boolean;
+};
+
+const SingleNews = ({ item, index, darkTheme }: SingleNewsProps) => {
+  const date = parseISO(item?.publishedAt);
+  const formattedDate = format(date, 'yyyy-MM-dd');
+  
+  return (
+    <View style={styles.container}>
+      <Image
+        style={styles.image}
+        source={{ uri: item?.urlToImage }}
+        onError={(err) => console.error("Error Setting Image URI: ", err.nativeEvent.error)}
+      />
+      <View style={{ ...styles.description, backgroundColor: darkTheme ? '#282c35' : 'white' }}>
+        <Text style={{ ...styles.title, color: darkTheme ? 'white' : 'gray' }}>{item?.title}</Text>
+        <Text style={{ ...styles.content, color: darkTheme ? 'white' : 'gray' }}>{item?.description}</Text>
+        <Text style={{ ...styles.content, color: darkTheme ? 'white' : 'gray' }}>
+          {formattedDate}
+        </Text>
+      </View>
+      <View style={{
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        width: windowWidth,
+      }}>
+        <View style={styles.credit}>
+          <Text style={{ ...styles.source, color: darkTheme ? 'white' : 'gray' }}>Shot by </Text>
+          <Text style={{ ...styles.source, color: darkTheme ? 'white' : 'gray' }}>{item.author ?? "unknown"}</Text>
+        </View>
+      </View>
+      <ImageBackground
+        blurRadius={30}
+        source={{ uri: item.urlToImage }}
+        style={styles.footer}
+      >
+        <TouchableOpacity
+          style={{
+            padding: 2,
+            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
+            height: "100%",
+          }}
+          onPress={() => Linking.openURL(item?.url)}
+        >
+          <Text style={{ fontSize: 15, color: darkTheme ? 'white' : 'gray' }}>
+            {item?.content?.slice(0, 45)}
+          </Text>
+          <Text style={{ fontSize: 17, fontWeight: 'bold', color: darkTheme ? 'white' : 'gray' }}>
+            Read More
+          </Text>
+        </TouchableOpacity>
+      </ImageBackground>
+    </View>
+  );
+};
+
+export default SingleNews;
+
+const styles = StyleSheet.create({
+  container: {
+    justifyContent: 'flex-start',
+    alignItems: "center",
+    width: windowWidth,
+    height: windowHeight,
+    flexDirection: 'column',
+    padding: 10,
+    gap: 10,
+  },
+  image: {
+    width: windowWidth,
+    height: '40%',
+    borderRadius: 5,
+    marginTop: 10,
+    resizeMode: 'cover',
+    marginRight: 10,
+  },
+  title: {
+    marginTop: 10,
+    fontSize: 17,
+    fontWeight: '100'
+  },
+  content: {
+    fontSize: 28,
+    fontWeight: '700',
+    height: 'auto',
+    width: 'auto',
+    padding: 7,
+    flex: 1,
+  },
+  description: {
+    fontSize: 30,
+    fontWeight: '800',
+  },
+  source: {
+    fontSize: 15,
+    fontWeight: '300',
+    textAlign: 'center'
+  },
+  credit: {
+    flex: 1,
+    alignItems: 'flex-start',
+    justifyContent: "center",
+    paddingLeft: 12,
+  },
+  footer: {
+    height: 120,
+    width: windowWidth,
+    position: 'absolute',
+    borderRadius: 5,
+    bottom: 2,
+    backgroundColor: '#d7be69',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  }
+});
+
+
+================================================================================
+
+File: components/TopNavigation.tsx
+Type: .tsx
+--------------------------------------------------------------------------------
+import React, { useContext } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { NewsContext } from '../API/Context';
+import { Ionicons } from '@expo/vector-icons';
+
+type TopNavigationProps = {
+  index: number;
+  setIndex: (index: number) => void;
+};
+
+const TopNavigation = ({ index, setIndex }: TopNavigationProps) => {
+  const { fetchNews, darkTheme, setDarkTheme } = useContext(NewsContext);
+
+  return (
+    <View style={{ ...styles.container, backgroundColor: darkTheme ? '#282c35' : 'white' }}>
+      {index === 0 ? (
+        <TouchableOpacity
+          onPress={() => setDarkTheme(!darkTheme)}
+          style={{ ...styles.left, color: darkTheme ? 'lightgray' : 'gray' }}
+        >
+          <Ionicons name={darkTheme ? "moon" : "moon-outline"} size={24} color={darkTheme ? "#007fff" : 'gray'} />
+          <Text style={{ ...styles.text }}>
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={{ ...styles.left, color: darkTheme ? 'lightgray' : 'gray' }}
+          onPress={() => setIndex(index === 0 ? 1 : 0)}
+        >
+          <Ionicons name="arrow-back" size={24} color={darkTheme ? "#007fff" : 'gray'} />
+          <Text style={{ ...styles.text, color: darkTheme ? 'lightgray' : 'gray' }}>
+            Discover
+          </Text>
+        </TouchableOpacity>
+      )}
+      <Text style={{ ...styles.center, color: darkTheme ? "white" : 'black' }}>
+        {index ? "All News" : "Discover"}
+      </Text>
+      {index ? (
+        <TouchableOpacity
+          onPress={() => fetchNews('general')}
+          style={styles.right}
+        >
+          <Text style={styles.text}>
+            <Ionicons name="refresh" size={24} color={darkTheme ? "#007fff" : 'gray'} />
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={styles.left}
+          onPress={() => setIndex(index === 0 ? 1 : 0)}
+        >
+          <Text style={{ ...styles.text, color: darkTheme ? "white" : 'gray' }}>
+            All News
+          </Text>
+          <Ionicons name="arrow-forward" size={24} color={darkTheme ? "#007fff" : 'gray'} />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
+
+export default TopNavigation;
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 10,
+    alignItems: 'center',
+    borderBottomColor: 'black',
+    borderBottomWidth: 0.5
+  },
+  left: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 80,
+    justifyContent: 'space-between',
+  },
+  right: {
+    width: 80,
+    height: 40,
+    justifyContent: 'center',
+    paddingRight: 7,
+    alignItems: "flex-end",
+  },
+  center: {
+    paddingBottom: 6,
+    borderBottomColor: '#007fff',
+    borderRadius: 5,
+    borderRadius: 10,
+    fontSize: 16,
+    fontWeight: '700'
+  },
+  text: {
+    fontSize: 16,
+    borderBottomColor: '#007fff',
+  },
+});
+
+
+================================================================================
+
+File: hooks/useFrameworkReady.ts
+Type: .ts
+--------------------------------------------------------------------------------
+import { useEffect } from 'react';
+
+export function useFrameworkReady() {
+  useEffect(() => {
+    // Framework initialization code
+  }, []);
+}
+
+
+================================================================================
+
+File: API/api.ts
+Type: .ts
+--------------------------------------------------------------------------------
+export const categories = [
+  {
+    code: "",
+    pic: "https://img.icons8.com/fluent/96/000000/news.png",
+    name: "general",
+  },
+  {
+    code: "",
+    pic: "https://img.icons8.com/fluent/96/000000/hard-working.png",
+    name: "business",
+  },
+  {
+    code: "",
+    pic: "https://img.icons8.com/fluent/96/000000/movie-projector.png",
+    name: "entertainment",
+  },
+  {
+    pic: "https://img.icons8.com/fluent/96/000000/stethoscope.png",
+    name: "health",
+  },
+  {
+    pic: "https://img.icons8.com/fluent/96/000000/microscope.png",
+    name: "science",
+  },
+  {
+    pic: "https://img.icons8.com/fluent/96/000000/trophy.png",
+    name: "sports",
+  },
+  {
+    pic: "https://img.icons8.com/fluent/96/000000/artificial-intelligence.png",
+    name: "technology",
+  },
+];
+
+export const country = [
+  {
+    code: "in",
+    name: "India",
+  },
+  {
+    code: "us",
+    name: "USA",
+  },
+  {
+    code: "au",
+    name: "Australia",
+  },
+  {
+    code: "ru",
+    name: "Russia",
+  },
+  {
+    code: "fr",
+    name: "France",
+  },
+  {
+    code: "gb",
+    name: "United Kingdom",
+  },
+];
+
+export const sources = [
+  {
+    id: "bbc-news",
+    name: "BBC News",
+    pic: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/BBC_News_2019.svg/1200px-BBC_News_2019.svg.png",
+  },
+  {
+    id: "cnn",
+    name: "CNN",
+    pic: "https://bankimooncentre.org/wp-content/uploads/2020/06/cnn-logo-square.png",
+  },
+  {
+    id: "fox-news",
+    name: "Fox News",
+    pic: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Fox_News_Channel_logo.svg/768px-Fox_News_Channel_logo.svg.png",
+  },
+  {
+    id: "google-news",
+    name: "Google News",
+    pic: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Google_News_icon.png",
+  },
+];
+
+// Using a free news API for the clone - you might need to replace with your own API key
+export const BASE_URL = "https://newsapi.org/v2";
+export const API_KEY = "YOUR_API_KEY"; // Replace with your news API key
+
+export const getNewsAPI = (category: string, country = "in") => {
+  return `${BASE_URL}/top-headlines?country=${country}&category=${category}&apiKey=${API_KEY}`;
+};
+
+export const getSourceAPI = (source: string) => {
+  return `${BASE_URL}/top-headlines?sources=${source}&apiKey=${API_KEY}`;
+};
+
+
+================================================================================
+
+File: API/Context.tsx
+Type: .tsx
+--------------------------------------------------------------------------------
+import React, { createContext, useEffect, useState, ReactNode } from "react";
+import axios from "axios";
+import { getNewsAPI, getSourceAPI } from "./api";
+
+type NewsType = {
+  articles: Array<{
+    source: { id: string; name: string };
+    author: string;
+    title: string;
+    description: string;
+    url: string;
+    urlToImage: string;
+    publishedAt: string;
+    content: string;
+  }>;
+  status: string;
+  totalResults: number;
+};
+
+type NewsContextType = {
+  news: NewsType | null;
+  category: string;
+  index: number;
+  darkTheme: boolean;
+  loading: boolean;
+  setCategory: (category: string) => void;
+  setIndex: (index: number) => void;
+  fetchNews: (category?: string) => Promise<void>;
+  setSource: (source: string) => void;
+  setDarkTheme: (darkTheme: boolean) => void;
+};
+
+export const NewsContext = createContext<NewsContextType>({} as NewsContextType);
+
+type ContextProviderProps = {
+  children: ReactNode;
+};
+
+const Context = ({ children }: ContextProviderProps) => {
+  const [loading, setLoading] = useState(false);
+  const [news, setNews] = useState<NewsType | null>(null);
+  const [category, setCategory] = useState("general");
+  const [source, setSource] = useState("bbc-news");
+  const [index, setIndex] = useState(1);
+  const [darkTheme, setDarkTheme] = useState(false);
+
+  const fetchNews = async (rest: string = category) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(getNewsAPI(rest));
+      setNews(response.data);
+      setIndex(1);
+    } catch (error) {
+      console.error(`Error Fetching News: `, error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchNewsFromSource = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(getSourceAPI(source));
+      if (!response) throw new Error("No Response");
+      setNews(response.data);
+      setIndex(1);
+    } catch (error) {
+      console.error(`Error Fetching News from Source: `, error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNews();
+  }, [category]);
+
+  useEffect(() => {
+    fetchNewsFromSource();
+  }, [source]);
+
+  return (
+    <NewsContext.Provider
+      value={{
+        news,
+        category,
+        index,
+        darkTheme,
+        loading,
+        setCategory,
+        setIndex,
+        fetchNews,
+        setSource,
+        setDarkTheme,
+      }}
+    >
+      {children}
+    </NewsContext.Provider>
+  );
+};
+
+export default Context;
+
+
+================================================================================
+
+
+Scan Summary
+================================================================================
+Total files scanned: 22
+
+Files by type:
+.js: 3 files
+.json: 3 files
+.md: 1 files
+.ts: 3 files
+.tsx: 11 files
+.txt: 1 files
