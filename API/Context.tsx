@@ -1,7 +1,8 @@
-import React, { createContext, useEffect, useState, ReactNode } from "react";
+import React, { createContext, useEffect, useState, ReactNode, useRef, useContext } from "react";
 import axios from "axios";
 import { getNewsAPI, getSourceAPI } from "./api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { userStorage } from "../lib/storage";
+import { AuthContext } from "./AuthContext";
 
 type NewsItem = {
   source: { id: string; name: string };
@@ -32,7 +33,7 @@ type NewsContextType = {
   fetchNews: (category?: string) => Promise<void>;
   setSource: (source: string) => void;
   setDarkTheme: (darkTheme: boolean) => void;
-  toggleBookmark: (url: string) => void;
+  toggleBookmark: (url: string, title: string, imageUrl: string) => void;
   isBookmarked: (url: string) => boolean;
 };
 
@@ -43,6 +44,7 @@ type ContextProviderProps = {
 };
 
 const Context = ({ children }: ContextProviderProps) => {
+  const { user, isLoggedIn } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [news, setNews] = useState<NewsType | null>(null);
   const [category, setCategory] = useState("general");
@@ -50,55 +52,80 @@ const Context = ({ children }: ContextProviderProps) => {
   const [index, setIndex] = useState(1);
   const [darkTheme, setDarkTheme] = useState(false);
   const [bookmarks, setBookmarks] = useState<string[]>([]);
+  const isInitialMount = useRef(true);
 
-  // Load saved bookmarks and theme on startup
+  // Set user ID in storage service when auth changes
   useEffect(() => {
-    const loadSavedSettings = async () => {
+    if (isLoggedIn && user) {
+      userStorage.setUser(user.id);
+    } else {
+      userStorage.setUser(null);
+    }
+  }, [isLoggedIn, user]);
+
+  // Initial data loading - runs on mount and when auth changes
+  useEffect(() => {
+    const initialize = async () => {
+      setLoading(true);
       try {
-        // Load saved theme preference
-        const savedTheme = await AsyncStorage.getItem('darkTheme');
-        if (savedTheme !== null) {
-          setDarkTheme(savedTheme === 'true');
+        // Load saved settings
+        try {
+          const userSettings = await userStorage.loadSettings();
+          if (userSettings) {
+            setDarkTheme(userSettings.dark_theme);
+          }
+
+          // Load bookmarks
+          const storedBookmarks = await userStorage.getBookmarks();
+          setBookmarks(storedBookmarks.map(bookmark => bookmark.url));
+        } catch (error) {
+          console.error('Error loading saved settings:', error);
         }
 
-        // Load saved bookmarks
-        const savedBookmarks = await AsyncStorage.getItem('bookmarks');
-        if (savedBookmarks !== null) {
-          setBookmarks(JSON.parse(savedBookmarks));
+        // Fetch initial news
+        const response = await axios.get(getNewsAPI(category));
+        if (response.data && response.data.articles) {
+          setNews(response.data);
+        } else {
+          console.error('Invalid response format:', response.data);
         }
       } catch (error) {
-        console.error('Error loading saved settings:', error);
+        console.error(`Error during initialization:`, error);
+        // Fallback to a second attempt with a different endpoint if the first fails
+        try {
+          const response = await axios.get(getSourceAPI(source));
+          if (response.data && response.data.articles) {
+            setNews(response.data);
+          }
+        } catch (fallbackError) {
+          console.error('Fallback fetch also failed:', fallbackError);
+        }
+      } finally {
+        setLoading(false);
       }
     };
 
-    loadSavedSettings();
-  }, []);
+    initialize();
+  }, [isLoggedIn, user?.id]); // Reinitialize when auth state changes
 
   // Save theme preference when it changes
   useEffect(() => {
     const saveThemePreference = async () => {
       try {
-        await AsyncStorage.setItem('darkTheme', darkTheme.toString());
+        await userStorage.saveSettings({
+          dark_theme: darkTheme,
+          updated_at: new Date().toISOString()
+        });
       } catch (error) {
         console.error('Error saving theme preference:', error);
       }
     };
 
-    saveThemePreference();
+    // Skip saving on initial mount
+    if (!isInitialMount.current) {
+      saveThemePreference();
+    }
   }, [darkTheme]);
-
-  // Save bookmarks when they change
-  useEffect(() => {
-    const saveBookmarks = async () => {
-      try {
-        await AsyncStorage.setItem('bookmarks', JSON.stringify(bookmarks));
-      } catch (error) {
-        console.error('Error saving bookmarks:', error);
-      }
-    };
-
-    saveBookmarks();
-  }, [bookmarks]);
 
   const fetchNews = async (rest: string = category) => {
     setLoading(true);
@@ -134,14 +161,24 @@ const Context = ({ children }: ContextProviderProps) => {
     }
   };
 
-  // Function to toggle bookmark status
-  const toggleBookmark = (url: string) => {
-    if (bookmarks.includes(url)) {
-      // Remove from bookmarks
-      setBookmarks(bookmarks.filter(bookmark => bookmark !== url));
-    } else {
-      // Add to bookmarks
-      setBookmarks([...bookmarks, url]);
+  // Toggle bookmark status
+  const toggleBookmark = async (url: string, title: string, imageUrl: string) => {
+    try {
+      if (bookmarks.includes(url)) {
+        // Remove from bookmarks
+        await userStorage.removeBookmark(url);
+        setBookmarks(bookmarks.filter(bookmark => bookmark !== url));
+      } else {
+        // Add to bookmarks
+        await userStorage.addBookmark({
+          url,
+          title,
+          image_url: imageUrl
+        });
+        setBookmarks([...bookmarks, url]);
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
     }
   };
 
@@ -150,11 +187,24 @@ const Context = ({ children }: ContextProviderProps) => {
     return bookmarks.includes(url);
   };
 
+  // Handle category changes
   useEffect(() => {
+    // Skip the first render since we're already loading data in the initialization
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     fetchNews();
   }, [category]);
 
+  // Handle source changes
   useEffect(() => {
+    // Skip the first render since we're already loading data in the initialization
+    if (isInitialMount.current) {
+      return;
+    }
+
     fetchNewsFromSource();
   }, [source]);
 

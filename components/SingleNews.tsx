@@ -5,12 +5,15 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Alert
 } from 'react-native';
 import { format, parseISO } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
 import ShareCard from './ShareCard';
 import { NewsContext } from '../API/Context';
+import { useAuth } from '../API/AuthContext';
+import { useRouter } from 'expo-router';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -44,6 +47,8 @@ const SingleNews = ({
                     }: SingleNewsProps) => {
   const [showShareCard, setShowShareCard] = useState(false);
   const { toggleBookmark, isBookmarked } = useContext(NewsContext);
+  const { isLoggedIn } = useAuth();
+  const router = useRouter();
 
   const date = parseISO(item?.publishedAt || new Date().toISOString());
   const formattedDate = format(date, 'yyyy-MM-dd');
@@ -55,7 +60,20 @@ const SingleNews = ({
   // Toggle bookmark with context function
   const handleBookmarkToggle = () => {
     if (item?.url) {
-      toggleBookmark(item.url);
+      if (!isLoggedIn && !bookmarkStatus) {
+        // Prompt to login if not logged in and trying to bookmark
+        Alert.alert(
+            "Sign in Required",
+            "Please sign in to save bookmarks across devices",
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Sign In", onPress: () => router.push('/auth/login') }
+            ]
+        );
+        return;
+      }
+
+      toggleBookmark(item.url, item.title || '', item.urlToImage || '');
     }
   };
 
@@ -119,7 +137,7 @@ const SingleNews = ({
     );
   }
 
-  // Normal interactive version (NO SCROLLVIEW!)
+  // Normal interactive version
   return (
       <View style={styles.container}>
         {/* Fixed image container at the top */}

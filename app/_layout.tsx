@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import Context from '../API/Context';
+import { AuthProvider } from '../API/AuthContext';
 import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -25,10 +26,16 @@ export default function RootLayout() {
     }
 
     return (
-        <Context>
-            <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(tabs)" />
-            </Stack>
-        </Context>
+        <AuthProvider>
+            <Context>
+                <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen
+                        name="auth/login"
+                        options={{ presentation: 'modal' }}
+                    />
+                </Stack>
+            </Context>
+        </AuthProvider>
     );
 }
