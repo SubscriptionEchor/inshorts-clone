@@ -1,4 +1,4 @@
-import React, { useContext, useState, useRef, useEffect } from 'react';
+import React, { useContext, useState, useRef } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -11,8 +11,7 @@ import {
   TouchableOpacity,
   Animated,
   PanResponder,
-  GestureResponderEvent,
-  PanResponderGestureState
+  Platform
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { NewsContext } from '../API/Context';
@@ -20,7 +19,6 @@ import SingleNews from '../components/SingleNews';
 
 const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
-const SWIPE_THRESHOLD = 80; // Lower threshold for easier swipe detection
 
 const NewsScreen = () => {
   const router = useRouter();
@@ -31,230 +29,197 @@ const NewsScreen = () => {
 
   // Animation values
   const position = useRef(new Animated.ValueXY()).current;
-  const swipeAnim = useRef(new Animated.Value(0)).current;
-  const nextCardOpacity = useRef(new Animated.Value(0.2)).current;
+  const nextCardOpacity = useRef(new Animated.Value(0.3)).current;
+  const nextCardScale = useRef(new Animated.Value(0.92)).current;
+  const currentCardScale = useRef(new Animated.Value(1)).current;
 
-  // Track if the user is scrolling content
-  const [isScrolling, setIsScrolling] = useState(false);
-  // Track where the touch started
-  const [touchStartY, setTouchStartY] = useState(0);
-  // Track the current card scroll position
-  const [cardScrollY, setCardScrollY] = useState(0);
+  // State to track if currently swiping to prevent multiple swipes
+  const isSwiping = useRef(false);
 
-  // Reset position after swipe
+  // Reset position after a canceled swipe
   const resetPosition = () => {
     Animated.spring(position, {
       toValue: { x: 0, y: 0 },
       friction: 5,
       tension: 40,
       useNativeDriver: true
-    }).start();
+    }).start(() => {
+      isSwiping.current = false;
+    });
+
+    Animated.parallel([
+      Animated.spring(currentCardScale, {
+        toValue: 1,
+        friction: 5,
+        tension: 40,
+        useNativeDriver: true
+      }),
+      Animated.spring(nextCardOpacity, {
+        toValue: 0.3,
+        friction: 5,
+        tension: 40,
+        useNativeDriver: true
+      }),
+      Animated.spring(nextCardScale, {
+        toValue: 0.92,
+        friction: 5,
+        tension: 40,
+        useNativeDriver: true
+      })
+    ]).start();
   };
 
-  // Animate to next card
+  // Swipe up to next card
   const swipeUp = () => {
-    if (activeIndex < articles.length - 1) {
-      Animated.timing(swipeAnim, {
-        toValue: -windowHeight,
+    if (activeIndex >= articles.length - 1 || isSwiping.current) {
+      resetPosition();
+      return;
+    }
+
+    isSwiping.current = true;
+
+    // Animate the current card up and off screen
+    Animated.timing(position, {
+      toValue: { x: 0, y: -windowHeight },
+      duration: 300,
+      useNativeDriver: true
+    }).start();
+
+    // Animate the next card scale and opacity
+    Animated.parallel([
+      Animated.timing(nextCardScale, {
+        toValue: 1,
         duration: 300,
         useNativeDriver: true
-      }).start(() => {
-        setActiveIndex(activeIndex + 1);
-        position.setValue({ x: 0, y: 0 });
-        swipeAnim.setValue(0);
-      });
-    } else {
-      resetPosition();
-    }
+      }),
+      Animated.timing(nextCardOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true
+      }),
+      Animated.timing(currentCardScale, {
+        toValue: 0.8,
+        duration: 300,
+        useNativeDriver: true
+      })
+    ]).start();
+
+    // Use timeout to ensure reliable state update
+    setTimeout(() => {
+      setActiveIndex(prevIndex => prevIndex + 1);
+      position.setValue({ x: 0, y: 0 });
+      nextCardScale.setValue(0.92);
+      nextCardOpacity.setValue(0.3);
+      currentCardScale.setValue(1);
+      isSwiping.current = false;
+    }, 310);
   };
 
-  // Animate to previous card
+  // Swipe down to previous card
   const swipeDown = () => {
-    if (activeIndex > 0) {
-      Animated.timing(swipeAnim, {
-        toValue: windowHeight,
-        duration: 300,
-        useNativeDriver: true
-      }).start(() => {
-        setActiveIndex(activeIndex - 1);
-        position.setValue({ x: 0, y: 0 });
-        swipeAnim.setValue(0);
-      });
-    } else {
+    if (activeIndex <= 0 || isSwiping.current) {
       resetPosition();
+      return;
     }
+
+    isSwiping.current = true;
+
+    // Animate the current card down and off screen
+    Animated.timing(position, {
+      toValue: { x: 0, y: windowHeight },
+      duration: 300,
+      useNativeDriver: true
+    }).start();
+
+    // Animate the current card scale
+    Animated.timing(currentCardScale, {
+      toValue: 0.8,
+      duration: 300,
+      useNativeDriver: true
+    }).start();
+
+    // Use timeout to ensure reliable state update
+    setTimeout(() => {
+      setActiveIndex(prevIndex => prevIndex - 1);
+      position.setValue({ x: 0, y: 0 });
+      currentCardScale.setValue(1);
+      isSwiping.current = false;
+    }, 310);
   };
 
-  // This function decides whether a gesture should be handled as a swipe or scroll
-  const shouldHandleSwipe = (gestureState: PanResponderGestureState): boolean => {
-    // Get vertical gesture distance
-    const { dy, moveY, vy } = gestureState;
-
-    // Don't swipe if actively scrolling content
-    if (isScrolling) return false;
-
-    // If at the top of content and swiping down, handle as card swipe
-    if (cardScrollY <= 0 && dy > SWIPE_THRESHOLD) {
-      return true;
-    }
-
-    // If at the bottom of content and swiping up, handle as card swipe
-    // We don't have a direct way to detect bottom, so use velocity as hint
-    if (dy < -SWIPE_THRESHOLD && Math.abs(vy) > 0.5) {
-      return true;
-    }
-
-    // Otherwise, it's probably a content scroll
-    return false;
-  };
-
-  // Pan responder for swipe gestures
+  // PanResponder for handling swipe gestures
   const panResponder = useRef(
       PanResponder.create({
-        // Initially, don't claim to be the responder
-        onStartShouldSetPanResponder: () => false,
+        // Only capture initial touches, not moves
+        onStartShouldSetPanResponder: () => true,
 
-        // This is critical - only become responder for significant vertical movements
-        onMoveShouldSetPanResponder: (evt: GestureResponderEvent, gestureState: PanResponderGestureState) => {
-          // Store the initial touch position for reference
-          if (touchStartY === 0) {
-            setTouchStartY(gestureState.moveY);
-          }
-
-          // Only handle as swipe if it meets our criteria
-          return shouldHandleSwipe(gestureState);
-        },
-
-        // Don't capture child events if we're primarily scrolling
-        onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
-          return Math.abs(gestureState.dy) > 40 && !isScrolling;
+        // Capture only vertical movements
+        onMoveShouldSetPanResponder: (_, gestureState) => {
+          const { dx, dy } = gestureState;
+          return Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10;
         },
 
         onPanResponderGrant: () => {
-          // When a swipe starts, ensure position is at current value
-          position.setOffset({
-            x: position.x._value,
-            y: position.y._value
-          });
-          position.setValue({ x: 0, y: 0 });
+          // Don't do anything if already swiping
+          if (isSwiping.current) return false;
         },
 
-        onPanResponderMove: (evt, gestureState) => {
-          // Only move if significant vertical distance to prevent accidental swipes
-          if (Math.abs(gestureState.dy) > 10) {
-            // Apply dampening for natural feel
-            const dampening = 0.7;
-            position.setValue({
-              x: 0,
-              y: gestureState.dy * dampening
-            });
+        onPanResponderMove: (_, gestureState) => {
+          // Don't do anything if already mid-swipe
+          if (isSwiping.current) return;
 
-            // Calculate the opacity of the next card based on swipe distance
-            const nextOpacity = Math.min(0.8, Math.abs(gestureState.dy) / (windowHeight / 3) + 0.2);
-            nextCardOpacity.setValue(nextOpacity);
+          const { dy } = gestureState;
+
+          // Apply resistance as we swipe further
+          const resistanceFactor = 0.9;
+          position.setValue({
+            x: 0,
+            y: dy * resistanceFactor
+          });
+
+          // Visual feedback during swipe
+          if (dy < 0 && activeIndex < articles.length - 1) {
+            // Swiping up - show next card
+            const progress = Math.min(Math.abs(dy) / 300, 1);
+            nextCardOpacity.setValue(0.3 + (0.7 * progress));
+            nextCardScale.setValue(0.92 + (0.08 * progress));
+            currentCardScale.setValue(1 - (0.2 * progress));
+          } else if (dy > 0 && activeIndex > 0) {
+            // Swiping down - scale current card
+            const progress = Math.min(Math.abs(dy) / 300, 1);
+            currentCardScale.setValue(1 - (0.1 * progress));
           }
         },
 
-        onPanResponderRelease: (evt, gestureState) => {
-          position.flattenOffset();
-          setTouchStartY(0); // Reset touch tracking
+        onPanResponderRelease: (_, gestureState) => {
+          if (isSwiping.current) return;
 
-          // If swiped far enough, navigate cards
-          if (gestureState.dy < -SWIPE_THRESHOLD && !isScrolling) {
+          const { dy, vy } = gestureState;
+          const SWIPE_THRESHOLD = 70; // Lower threshold for easier swiping
+          const VELOCITY_THRESHOLD = 0.3; // Add velocity detection
+
+          // Check swipe distance and velocity
+          if (
+              (dy < -SWIPE_THRESHOLD || vy < -VELOCITY_THRESHOLD) &&
+              activeIndex < articles.length - 1
+          ) {
             swipeUp();
-          } else if (gestureState.dy > SWIPE_THRESHOLD && !isScrolling) {
+          } else if (
+              (dy > SWIPE_THRESHOLD || vy > VELOCITY_THRESHOLD) &&
+              activeIndex > 0
+          ) {
             swipeDown();
           } else {
-            // Otherwise, reset position
             resetPosition();
-
-            // Reset the next card opacity
-            Animated.timing(nextCardOpacity, {
-              toValue: 0.2,
-              duration: 300,
-              useNativeDriver: true
-            }).start();
           }
         },
 
-        // Allow other responders to become responder
-        onPanResponderTerminationRequest: () => true,
-
+        // Handle interrupted gestures
         onPanResponderTerminate: () => {
-          // Reset when terminated
           resetPosition();
-          setTouchStartY(0);
         }
       })
   ).current;
-
-  // Dynamic position styling for the current card
-  const getCardStyle = () => {
-    // Spring effect with damping
-    const translateY = position.y.interpolate({
-      inputRange: [-windowHeight, 0, windowHeight],
-      outputRange: [-windowHeight/15, 0, windowHeight/15],
-      extrapolate: 'clamp'
-    });
-
-    // Scale effect - card gets slightly smaller as it's swiped
-    const scale = position.y.interpolate({
-      inputRange: [-windowHeight, 0, windowHeight],
-      outputRange: [0.95, 1, 0.95],
-      extrapolate: 'clamp'
-    });
-
-    // Combine with the swipe animation
-    return {
-      transform: [
-        { translateY: Animated.add(translateY, swipeAnim) },
-        { scale }
-      ]
-    };
-  };
-
-  // Next card position styling
-  const getNextCardStyle = () => {
-    // The next card should initially be below the current one
-    const translateY = position.y.interpolate({
-      inputRange: [-windowHeight, 0, windowHeight],
-      outputRange: [0, windowHeight/10, windowHeight/5],
-      extrapolate: 'clamp'
-    });
-
-    return {
-      transform: [
-        { translateY: Animated.add(translateY, swipeAnim) },
-        { scale: 0.95 }
-      ],
-      opacity: nextCardOpacity,
-      zIndex: 1 // Keep next card behind current
-    };
-  };
-
-  // Handle scroll position tracking
-  const handleScroll = (event) => {
-    // Get current scroll position of the content
-    const scrollY = event.nativeEvent.contentOffset.y;
-    setCardScrollY(scrollY);
-  };
-
-  // Handle when content scrolling begins
-  const handleScrollBegin = () => {
-    setIsScrolling(true);
-  };
-
-  // Handle when content scrolling ends
-  const handleScrollEnd = () => {
-    // Small delay to ensure we don't capture a swipe immediately after scrolling
-    setTimeout(() => {
-      setIsScrolling(false);
-    }, 100);
-  };
-
-  // Manual navigation buttons - optional
-  const goToNextCard = () => swipeUp();
-  const goToPrevCard = () => swipeDown();
 
   const tabs = [
     { id: 'feed', label: 'My Feed' },
@@ -263,7 +228,6 @@ const NewsScreen = () => {
     { id: 'videos', label: 'Videos' },
   ];
 
-  // Render loading state
   if (loading) {
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -293,7 +257,6 @@ const NewsScreen = () => {
     );
   }
 
-  // Render empty state
   if (!articles || articles.length === 0) {
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -347,13 +310,20 @@ const NewsScreen = () => {
           </ScrollView>
         </View>
 
-        {/* Swipeable news cards */}
+        {/* Swipeable news cards container */}
         <View style={styles.cardsContainer}>
           {/* Card behind current card (only visible during swipe) */}
           {activeIndex < articles.length - 1 && (
               <Animated.View
-                  style={[styles.nextCardContainer, getNextCardStyle()]}
-                  pointerEvents="none" // Prevent interaction with next card
+                  style={[
+                    styles.nextCardContainer,
+                    {
+                      opacity: nextCardOpacity,
+                      transform: [
+                        { scale: nextCardScale }
+                      ]
+                    }
+                  ]}
               >
                 <SingleNews
                     item={articles[activeIndex + 1]}
@@ -366,37 +336,23 @@ const NewsScreen = () => {
 
           {/* Current card with pan responder */}
           <Animated.View
-              style={[styles.currentCardContainer, getCardStyle()]}
+              style={[
+                styles.currentCardContainer,
+                {
+                  transform: [
+                    { translateY: position.y },
+                    { scale: currentCardScale }
+                  ]
+                }
+              ]}
               {...panResponder.panHandlers}
           >
             <SingleNews
                 item={articles[activeIndex]}
                 index={activeIndex}
                 darkTheme={darkTheme}
-                onScrollBegin={handleScrollBegin}
-                onScrollEnd={handleScrollEnd}
-                onScroll={handleScroll}
             />
           </Animated.View>
-
-          {/* For debugging: Optional navigation buttons
-        <View style={styles.navButtons}>
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={goToPrevCard}
-            disabled={activeIndex === 0}
-          >
-            <Text style={styles.navButtonText}>Previous</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={goToNextCard}
-            disabled={activeIndex === articles.length - 1}
-          >
-            <Text style={styles.navButtonText}>Next</Text>
-          </TouchableOpacity>
-        </View>
-        */}
         </View>
       </SafeAreaView>
   );
@@ -405,11 +361,7 @@ const NewsScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#000', // Set to black for status bar area
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#000',
   },
   tabContainer: {
     backgroundColor: '#000',
@@ -438,6 +390,17 @@ const styles = StyleSheet.create({
   cardsContainer: {
     flex: 1,
     backgroundColor: '#fff',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   currentCardContainer: {
     position: 'absolute',
@@ -446,7 +409,9 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#fff',
-    zIndex: 2, // Ensure current card is on top
+    zIndex: 2,
+    borderRadius: 2,
+    overflow: 'hidden',
   },
   nextCardContainer: {
     position: 'absolute',
@@ -455,7 +420,9 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#fff',
-    zIndex: 1, // Keep next card behind current
+    zIndex: 1,
+    borderRadius: 2,
+    overflow: 'hidden',
   },
   loadingContainer: {
     flex: 1,
@@ -468,27 +435,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
-  },
-  navButtons: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    zIndex: 100,
-  },
-  navButton: {
-    backgroundColor: 'rgba(0, 122, 255, 0.8)',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    marginHorizontal: 10,
-  },
-  navButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
+  }
 });
 
 export default NewsScreen;

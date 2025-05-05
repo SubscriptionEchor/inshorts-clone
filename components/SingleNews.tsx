@@ -5,12 +5,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  ScrollView,
-  NativeSyntheticEvent,
-  NativeScrollEvent
+  View
 } from 'react-native';
-import { Linking } from 'react-native';
 import { format, parseISO } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
 import ShareCard from './ShareCard';
@@ -38,19 +34,13 @@ type SingleNewsProps = {
   index: number;
   darkTheme: boolean;
   disableInteraction?: boolean;
-  onScrollBegin?: () => void;
-  onScrollEnd?: () => void;
-  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
 
 const SingleNews = ({
                       item,
                       index,
                       darkTheme,
-                      disableInteraction = false,
-                      onScrollBegin,
-                      onScrollEnd,
-                      onScroll
+                      disableInteraction = false
                     }: SingleNewsProps) => {
   const [showShareCard, setShowShareCard] = useState(false);
   const { toggleBookmark, isBookmarked } = useContext(NewsContext);
@@ -69,25 +59,22 @@ const SingleNews = ({
     }
   };
 
-  // Create long content for testing scroll
-  const longDescription = item?.description || '';
-  // Add extra content for testing if the description is too short
-  const testContent = longDescription.length < 500 ?
-      longDescription + '\n\n' + (item?.content || '').repeat(5) :
-      longDescription;
-
   // If interaction is disabled, render a simpler version
   if (disableInteraction) {
     return (
         <View style={styles.container}>
           {/* Image for article if available */}
-          {item?.urlToImage && (
-              <Image
-                  style={styles.image}
-                  source={{ uri: item?.urlToImage }}
-                  onError={(err) => console.error("Error Setting Image URI: ", err.nativeEvent.error)}
-              />
-          )}
+          <View style={styles.imageContainer}>
+            {item?.urlToImage ? (
+                <Image
+                    style={styles.image}
+                    source={{ uri: item?.urlToImage }}
+                    onError={(err) => console.error("Error Setting Image URI: ", err.nativeEvent.error)}
+                />
+            ) : (
+                <View style={[styles.image, styles.placeholderImage]} />
+            )}
+          </View>
 
           <View style={styles.contentContainer}>
             {/* Logo and action buttons */}
@@ -111,98 +98,15 @@ const SingleNews = ({
             </View>
 
             {/* Content as a non-scrollable view */}
-            <View>
-              <Text style={styles.headline}>{item?.title}</Text>
-              <Text style={styles.bodyText}>{item?.description}</Text>
-              <Text style={styles.attribution}>
-                few hours ago | {item.author || "Unknown"} | {item.source?.name || "News"}
-              </Text>
-
-              {hasQuoteSection && (
-                  <View style={styles.quoteContainer}>
-                    <Text style={styles.quoteText}>
-                      '{item.content?.slice(0, 60)}...'
-                    </Text>
-                    <Text style={styles.quoteAttribution}>
-                      {item.source?.name || "Source"} further stated
-                    </Text>
-                  </View>
-              )}
-            </View>
-          </View>
-        </View>
-    );
-  }
-
-  // Normal interactive version with scrolling
-  return (
-      <View style={styles.container}>
-        {/* Image for article if available */}
-        {item?.urlToImage && (
-            <Image
-                style={styles.image}
-                source={{ uri: item?.urlToImage }}
-                onError={(err) => console.error("Error Setting Image URI: ", err.nativeEvent.error)}
-            />
-        )}
-
-        {/* Use ScrollView with proper event handlers */}
-        <ScrollView
-            style={styles.scrollContainer}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={true}
-            scrollEventThrottle={16} // Important for smooth scroll event handling
-            onScroll={onScroll}
-            onScrollBeginDrag={() => onScrollBegin && onScrollBegin()}
-            onScrollEndDrag={() => onScrollEnd && onScrollEnd()}
-            onMomentumScrollBegin={() => onScrollBegin && onScrollBegin()}
-            onMomentumScrollEnd={() => onScrollEnd && onScrollEnd()}
-        >
-          <View style={styles.contentContainer}>
-            {/* Logo and action buttons */}
-            <View style={styles.actionContainer}>
-              <View style={styles.logoContainer}>
-                <Text style={styles.logoText}>inshorts</Text>
-              </View>
-
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={handleBookmarkToggle}
-                >
-                  <Ionicons
-                      name={bookmarkStatus ? "bookmark" : "bookmark-outline"}
-                      size={22}
-                      color="#000"
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => setShowShareCard(true)}
-                >
-                  <Ionicons name="share-social-outline" size={22} color="#000" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Headline */}
-            <Text style={styles.headline}>{item?.title}</Text>
-
-            {/* Body text - use the longer content for testing scroll */}
-            <Text style={styles.bodyText}>{item?.description}</Text>
-
-            {/* For testing scroll - can be removed in production */}
-            <Text style={styles.bodyText}>{item?.content}</Text>
-
-            {/* Attribution line */}
+            <Text style={styles.headline} numberOfLines={3}>{item?.title || 'No Title'}</Text>
+            <Text style={styles.bodyText} numberOfLines={7}>{item?.description || 'No Description'}</Text>
             <Text style={styles.attribution}>
-              few hours ago | {item.author || "Unknown"} | {item.source?.name || "News"}
+              few hours ago | {item?.author || "Unknown"} | {item?.source?.name || "News"}
             </Text>
 
-            {/* Optional footer content/quote */}
             {hasQuoteSection && (
                 <View style={styles.quoteContainer}>
-                  <Text style={styles.quoteText}>
+                  <Text style={styles.quoteText} numberOfLines={2}>
                     '{item.content?.slice(0, 60)}...'
                   </Text>
                   <Text style={styles.quoteAttribution}>
@@ -210,11 +114,78 @@ const SingleNews = ({
                   </Text>
                 </View>
             )}
-
-            {/* Add padding at the bottom for better scrolling */}
-            <View style={styles.scrollPadding} />
           </View>
-        </ScrollView>
+        </View>
+    );
+  }
+
+  // Normal interactive version (NO SCROLLVIEW!)
+  return (
+      <View style={styles.container}>
+        {/* Fixed image container at the top */}
+        <View style={styles.imageContainer}>
+          {item?.urlToImage ? (
+              <Image
+                  style={styles.image}
+                  source={{ uri: item?.urlToImage }}
+                  onError={(err) => console.error("Error Setting Image URI: ", err.nativeEvent.error)}
+              />
+          ) : (
+              <View style={[styles.image, styles.placeholderImage]} />
+          )}
+        </View>
+
+        {/* Non-scrollable content */}
+        <View style={styles.contentContainer}>
+          {/* Logo and action buttons */}
+          <View style={styles.actionContainer}>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>inshorts</Text>
+            </View>
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleBookmarkToggle}
+              >
+                <Ionicons
+                    name={bookmarkStatus ? "bookmark" : "bookmark-outline"}
+                    size={22}
+                    color="#000"
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => setShowShareCard(true)}
+              >
+                <Ionicons name="share-social-outline" size={22} color="#000" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Headline */}
+          <Text style={styles.headline} numberOfLines={3}>{item?.title || 'No Title'}</Text>
+
+          {/* Body text - limit to prevent overflow */}
+          <Text style={styles.bodyText} numberOfLines={7}>{item?.description || 'No Description'}</Text>
+
+          {/* Attribution line */}
+          <Text style={styles.attribution}>
+            few hours ago | {item?.author || "Unknown"} | {item?.source?.name || "News"}
+          </Text>
+
+          {/* Optional footer content/quote */}
+          {hasQuoteSection && (
+              <View style={styles.quoteContainer}>
+                <Text style={styles.quoteText} numberOfLines={2}>
+                  '{item.content?.slice(0, 60)}...'
+                </Text>
+                <Text style={styles.quoteAttribution}>
+                  {item.source?.name || "Source"} further stated
+                </Text>
+              </View>
+          )}
+        </View>
 
         {/* Share Card Modal */}
         <ShareCard
@@ -233,26 +204,27 @@ const SingleNews = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: windowHeight - 120, // Adjust for tab bars
+    height: windowHeight - 110, // Adjusted for tab bar
     width: windowWidth,
     backgroundColor: '#fff',
     flexDirection: 'column',
   },
-  image: {
+  imageContainer: {
     width: windowWidth,
     height: windowHeight * 0.35,
+    backgroundColor: '#f0f0f0',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
     resizeMode: 'cover',
   },
-  scrollContainer: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
+  placeholderImage: {
+    backgroundColor: '#e0e0e0',
   },
   contentContainer: {
+    flex: 1,
     padding: 15,
-    position: 'relative',
-    minHeight: windowHeight * 0.4, // Ensure there's enough content for scrolling
   },
   actionContainer: {
     flexDirection: 'row',
@@ -294,13 +266,13 @@ const styles = StyleSheet.create({
   attribution: {
     fontSize: 12,
     color: '#888',
-    marginTop: 5,
     marginBottom: 15,
   },
   quoteContainer: {
     backgroundColor: '#333',
     padding: 15,
-    marginTop: 15,
+    marginTop: 5,
+    marginBottom: 15,
     borderRadius: 4,
   },
   quoteText: {
@@ -312,9 +284,6 @@ const styles = StyleSheet.create({
     color: '#ccc',
     fontSize: 14,
     marginTop: 5,
-  },
-  scrollPadding: {
-    height: 60, // Add padding at the bottom for better scrolling
   }
 });
 
