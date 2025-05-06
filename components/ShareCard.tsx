@@ -56,25 +56,30 @@ const ShareCard = ({
                 // Capture the card as an image
                 const uri = await viewShotRef.current.capture();
 
-                // Share the image
-                if (Platform.OS === 'ios' || Platform.OS === 'android') {
-                    const isAvailable = await Sharing.isAvailableAsync();
-                    if (isAvailable) {
-                        await Sharing.shareAsync(uri);
+                // Share the image based on platform availability
+                if (typeof Platform !== 'undefined') {
+                    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+                        const isAvailable = await Sharing.isAvailableAsync();
+                        if (isAvailable) {
+                            await Sharing.shareAsync(uri);
+                        } else {
+                            // Fallback to basic share
+                            await Share.share({
+                                url: uri,
+                                title: title,
+                                message: `${title}\n\n${shortenedUrl}\n-via inshorts`
+                            });
+                        }
                     } else {
-                        // Fallback to basic share
+                        // Web sharing
                         await Share.share({
-                            url: uri,
                             title: title,
                             message: `${title}\n\n${shortenedUrl}\n-via inshorts`
                         });
                     }
                 } else {
-                    // Web sharing
-                    await Share.share({
-                        title: title,
-                        message: `${title}\n\n${shortenedUrl}\n-via inshorts`
-                    });
+                    // Fallback for environments where Platform is not available
+                    console.warn('Platform API not available in this environment');
                 }
             } catch (error) {
                 console.error('Error sharing card:', error);
@@ -107,7 +112,7 @@ const ShareCard = ({
                         ) : null}
 
                         <View style={styles.logoContainer}>
-                            <Text style={styles.logoText}>inshorts</Text>
+                            <Text style={styles.logoText}>CryptoShorts</Text>
                         </View>
 
                         <Text style={styles.headline}>{title}</Text>
@@ -135,7 +140,7 @@ const ShareCard = ({
                             )}
                         </Text>
 
-                        <Text style={styles.via}>-via inshorts</Text>
+                        <Text style={styles.via}>-via CryptoShorts</Text>
 
                         <Text style={styles.timestamp}>{formattedTime} ✓✓</Text>
                     </View>
@@ -156,14 +161,14 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 999,
     },
     closeButton: {
         position: 'absolute',
-        top: 50,
+        top: 40,
         right: 20,
         zIndex: 1000,
         padding: 8,
@@ -189,14 +194,15 @@ const styles = StyleSheet.create({
         top: 10,
         left: 10,
         backgroundColor: '#f73131',
-        padding: 5,
+        padding: 6,
+        paddingHorizontal: 8,
         borderRadius: 4,
         zIndex: 1,
     },
     logoText: {
         color: '#fff',
-        fontSize: 14,
-        fontWeight: 'bold',
+        fontSize: 15,
+        fontFamily: 'Inter-Bold',
     },
     headline: {
         fontSize: 20,
@@ -218,7 +224,7 @@ const styles = StyleSheet.create({
         paddingBottom: 15,
     },
     bottomContent: {
-        backgroundColor: '#8C1D40', // Rich maroon/burgundy color from Inshorts
+        backgroundColor: '#8C1D40',
         padding: 15,
         paddingTop: 20,
     },
@@ -247,19 +253,19 @@ const styles = StyleSheet.create({
     shareButton: {
         marginTop: 20,
         backgroundColor: '#007AFF',
-        paddingVertical: 15,
+        paddingVertical: 14,
         paddingHorizontal: 40,
         borderRadius: 25,
         elevation: 5,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
     },
     shareButtonText: {
         color: '#fff',
         fontSize: 18,
-        fontWeight: '600',
+        fontFamily: 'Inter-SemiBold',
     },
 });
 

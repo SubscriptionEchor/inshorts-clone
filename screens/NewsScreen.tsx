@@ -9,8 +9,8 @@ import {
   ScrollView,
   SafeAreaView,
   TouchableOpacity,
-  Platform
 } from 'react-native';
+import { Platform } from 'react-native';
 import Swiper from '@zhenyudu/react-native-snap-carousel';
 import { useRouter } from 'expo-router';
 import { NewsContext } from '../API/Context';
@@ -24,8 +24,8 @@ const NewsScreen = () => {
   const { loading, news, darkTheme } = useContext(NewsContext);
 
   // More robust null checking for articles
-  const articles = news?.articles && Array.isArray(news.articles) && news.articles.length > 0
-      ? news.articles
+  const articles = news?.Data && Array.isArray(news.Data) && news.Data.length > 0
+      ? news.Data
       : [];
 
   const [activeIndex, setActiveIndex] = useState(0);
@@ -53,11 +53,10 @@ const NewsScreen = () => {
   // Render a single news item - Don't add key here
   const renderItem = ({ item, index }) => {
     // Ensure item has required properties
-    const newsKey = `news-item-${index}-${item?.url || ''}`;
     if (!item) return null;
 
     return (
-        <View style={styles.cardContainer} key={newsKey}>
+        <View style={styles.cardContainer}>
           <SingleNews
               item={item}
               index={index}
@@ -69,20 +68,30 @@ const NewsScreen = () => {
 
   const tabs = [
     { id: 'feed', label: 'My Feed' },
-    { id: 'sale', label: 'Instawoooow Sale' },
-    { id: 'match', label: 'Match Center' },
-    { id: 'videos', label: 'Videos' },
+    { id: 'trending', label: 'Trending' },
+    { id: 'markets', label: 'Markets' },
+    { id: 'nft', label: 'NFTs' },
+    { id: 'defi', label: 'DeFi' },
+    { id: 'metaverse', label: 'Metaverse' },
   ];
 
   // Render the tab navigation
   const renderTabNavigation = () => (
       <View style={styles.tabContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabScrollContent}
+        >
           <View style={styles.tabTextContainer}>
             {tabs.map((tab) => (
                 <TouchableOpacity
                     key={tab.id}
                     onPress={() => setActiveTab(tab.label)}
+                    style={[
+                      styles.tabButton,
+                      activeTab === tab.label && styles.activeTabButton
+                    ]}
                 >
                   <Text
                       style={activeTab === tab.label ? styles.activeTabText : styles.inactiveTabText}
@@ -167,27 +176,41 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     backgroundColor: '#000',
-    height: 50,
-    paddingHorizontal: 10,
+    height: 60,
+    paddingVertical: 8,
     justifyContent: 'center',
     zIndex: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1a1a1a',
+  },
+  tabScrollContent: {
+    paddingHorizontal: 16,
   },
   tabTextContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 5,
-    height: 50,
+    height: 44,
+  },
+  tabButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 12,
+    backgroundColor: '#1a1a1a',
+  },
+  activeTabButton: {
+    backgroundColor: '#007AFF',
   },
   activeTabText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '500',
-    marginRight: 20,
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
   },
   inactiveTabText: {
     color: '#999',
-    fontSize: 16,
-    marginRight: 20,
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
   },
   cardsContainer: {
     flex: 1,
@@ -195,20 +218,22 @@ const styles = StyleSheet.create({
   },
   swiperContainer: {
     flex: 1,
+    backgroundColor: '#000000',
   },
   swiperContentContainer: {
     alignItems: 'center',
+    backgroundColor: '#000000',
   },
   cardContainer: {
-    height: windowHeight - 110,
+    height: Platform.OS === 'ios' ? windowHeight - 140 : windowHeight - 110,
     width: windowWidth,
-    backgroundColor: '#fff',
+    backgroundColor: '#000000',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
       },
       android: {
         elevation: 3,

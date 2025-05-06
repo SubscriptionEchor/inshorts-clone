@@ -25,27 +25,9 @@ const generateShortPath = (length: number = 5): string => {
  */
 export const shortenUrl = async (originalUrl: string): Promise<string> => {
     try {
-        // In a real implementation, you would make an API call to a service like
-        // Bitly, TinyURL, or your own backend shortening service
-
         // For demo purposes, generate a fake shortened URL
         const shortPath = generateShortPath();
         return `https://shrts.in/${shortPath}`;
-
-        // Example of what a real implementation might look like:
-        /*
-        const response = await fetch('https://api.shortener.com/shorten', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer YOUR_API_KEY'
-          },
-          body: JSON.stringify({ url: originalUrl })
-        });
-
-        const data = await response.json();
-        return data.shortUrl;
-        */
     } catch (error) {
         console.error('Error shortening URL:', error);
         return originalUrl; // Fallback to original URL if shortening fails
