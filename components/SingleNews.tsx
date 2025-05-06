@@ -222,14 +222,14 @@ const SingleNews = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: windowHeight - 110, // Adjusted for tab bar
+    height: '100%',
     width: windowWidth,
     backgroundColor: '#fff',
     flexDirection: 'column',
   },
   imageContainer: {
     width: windowWidth,
-    height: windowHeight * 0.35,
+    height: windowHeight * 0.45,
     backgroundColor: '#f0f0f0',
   },
   image: {
@@ -243,6 +243,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     padding: 15,
+    paddingBottom: 0,
   },
   actionContainer: {
     flexDirection: 'row',

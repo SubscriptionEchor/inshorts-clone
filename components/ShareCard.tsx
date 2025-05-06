@@ -25,6 +25,7 @@ type ShareCardProps = {
     url?: string;
     visible: boolean;
     onClose: () => void;
+    onShare: () => void;
 };
 
 const ShareCard = ({
@@ -35,7 +36,8 @@ const ShareCard = ({
                        source,
                        url,
                        visible,
-                       onClose
+                       onClose,
+                       onShare
                    }: ShareCardProps) => {
     const viewShotRef = useRef<ViewShot>(null);
 
@@ -84,7 +86,11 @@ const ShareCard = ({
 
     return (
         <View style={styles.modalContainer}>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <TouchableOpacity 
+                style={styles.closeButton} 
+                onPress={onClose}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
                 <Ionicons name="close" size={28} color="#fff" />
             </TouchableOpacity>
 
@@ -150,16 +156,17 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 999,
     },
     closeButton: {
         position: 'absolute',
-        top: 40,
+        top: 50,
         right: 20,
         zIndex: 1000,
+        padding: 8,
     },
     card: {
         width: width - 40,
@@ -240,9 +247,14 @@ const styles = StyleSheet.create({
     shareButton: {
         marginTop: 20,
         backgroundColor: '#007AFF',
-        paddingVertical: 12,
-        paddingHorizontal: 30,
+        paddingVertical: 15,
+        paddingHorizontal: 40,
         borderRadius: 25,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     },
     shareButtonText: {
         color: '#fff',

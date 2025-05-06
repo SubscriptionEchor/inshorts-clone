@@ -53,10 +53,11 @@ const NewsScreen = () => {
   // Render a single news item - Don't add key here
   const renderItem = ({ item, index }) => {
     // Ensure item has required properties
+    const newsKey = `news-item-${index}-${item?.url || ''}`;
     if (!item) return null;
 
     return (
-        <View style={styles.cardContainer}>
+        <View style={styles.cardContainer} key={newsKey}>
           <SingleNews
               item={item}
               index={index}
@@ -64,11 +65,6 @@ const NewsScreen = () => {
           />
         </View>
     );
-  };
-
-  // Generate a keyExtractor function for the carousel
-  const keyExtractor = (item, index) => {
-    return `news-item-${index}-${item?.url || ''}`;
   };
 
   const tabs = [
@@ -138,7 +134,6 @@ const NewsScreen = () => {
               <Swiper
                   data={articles}
                   renderItem={renderItem}
-                  keyExtractor={keyExtractor}
                   sliderWidth={windowWidth}
                   itemWidth={windowWidth}
                   sliderHeight={windowHeight - 110}
