@@ -13,13 +13,19 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.echortech.inshortsclone",
+      "buildNumber": "2",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.n1324.inshortsclone"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -29,6 +35,12 @@
       "expo-router",
       "expo-asset"
     ],
-    "scheme": "inshorts-clone"
+    "scheme": "inshorts-clone",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3a59f5b2-6651-4fb1-992f-789070e49236"
+      }
+    }
   }
 }

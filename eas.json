@@ -1,0 +1,32 @@
+{
+  "cli": {
+    "version": ">= 16.4.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "env": {
+          "KOTLIN_JVM_TARGET": "17"
+        }
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "env": {
+          "KOTLIN_JVM_TARGET": "17"
+        }
+      }
+    }
+  
+  },
+  "submit": {
+    "production": {}
+  }
+}
