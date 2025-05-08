@@ -1,60 +1,68 @@
 import React, { useContext } from 'react';
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { NewsContext } from '../API/Context';
-import Carousel from '@zhenyudu/react-native-snap-carousel';
 import { categories, sources } from '../API/api';
 import Search from '../components/Search';
 
 const windowWidth = Dimensions.get('window').width;
+const CATEGORY_WIDTH = (windowWidth - 40) / 2;
 
 const DiscoverScreen = () => {
   const { setCategory, darkTheme, setSource } = useContext(NewsContext);
-  const SLIDE_WIDTH = Math.round(windowWidth / 3.5);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: darkTheme ? '#000' : '#fff' }]}>
       <Search />
-      <Text style={{ ...styles.subtitle, paddingTop: 10, color: darkTheme ? 'white' : 'gray' }}>Categories</Text>
-      <Carousel
-        data={categories}
-        renderItem={({ item, index }) => (
-          <TouchableOpacity
-            onPress={() => setCategory(item?.name)}
-            style={{ ...styles.categoriesStyles }}>
-            <Image
-              source={{ uri: item?.pic }}
-              style={styles.categoryImage}
-            />
-            <Text
-              style={{ ...styles.categoriesName, color: darkTheme ? 'white' : 'gray' }}
-            >{item?.name}</Text>
-          </TouchableOpacity>
-        )}
-        sliderWidth={windowWidth}
-        itemWidth={SLIDE_WIDTH}
-        horizontal={true}
-        activeSlideAlignment='start'
-        inactiveSlideScale={1}
-        inactiveSlideOpacity={2}
-      />
-      <Text style={{ ...styles.subtitle, color: darkTheme ? 'white' : 'gray' }}>
-        Sources
-      </Text>
-      <View style={styles.sources}>
-        {sources.map(s => (
-          <TouchableOpacity
-            onPress={() => setSource(s?.id)}
-            key={s?.id}
-            style={styles.sourceContainer}
-          >
-            <Image
-              source={{ uri: s?.pic }}
-              style={styles.sourceImage}
-            />
-          </TouchableOpacity>
-        ))}
+      <View style={styles.content}>
+        <Text style={[styles.subtitle, { color: darkTheme ? '#fff' : '#1a1a1a' }]}>
+          Categories
+        </Text>
+        <View style={styles.categoriesGrid}>
+          {categories.map((item) => (
+            <TouchableOpacity
+              key={item.name}
+              onPress={() => setCategory(item.name)}
+              style={[
+                styles.categoryCard,
+                { backgroundColor: darkTheme ? '#1a1a1a' : '#f5f5f5' }
+              ]}
+            >
+              <Image source={{ uri: item.pic }} style={styles.categoryIcon} />
+              <Text style={[
+                styles.categoryName,
+                { color: darkTheme ? '#fff' : '#1a1a1a' }
+              ]}>
+                {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={[styles.subtitle, { color: darkTheme ? '#fff' : '#1a1a1a', marginTop: 24 }]}>
+          Sources
+        </Text>
+        <View style={styles.sourcesGrid}>
+          {sources.map((source) => (
+            <TouchableOpacity
+              key={source.id}
+              onPress={() => setSource(source.id)}
+              style={[
+                styles.sourceCard,
+                { backgroundColor: darkTheme ? '#1a1a1a' : '#f5f5f5' }
+              ]}
+            >
+              <Image source={{ uri: source.pic }} style={styles.sourceLogo} />
+              <Text style={[
+                styles.sourceName,
+                { color: darkTheme ? '#fff' : '#1a1a1a' }
+              ]}>
+                {source.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -62,50 +70,73 @@ export default DiscoverScreen;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 10,
-    alignItems: 'center',
+    flex: 1,
+  },
+  content: {
+    padding: 16,
   },
   subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    paddingBottom: 8,
-    marginHorizontal: 5,
-    borderBottomColor: '#007fff',
-    borderBottomWidth: 5,
-    alignSelf: 'flex-start',
-    borderRadius: 10,
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    marginBottom: 16,
   },
-  categoriesName: {
-    textAlign: 'center',
-    fontSize: 18,
-  },
-  categoriesStyles: {
-    height: 150,
-    margin: 10,
-    alignItems: 'center',
-    justifyContent: 'space-evenly'
-  },
-  categoryImage: {
-    height: '40%',
-    width: '100%',
-    resizeMode: 'contain'
-  },
-  sourceContainer: {
-    height: 150,
-    width: "40%",
-    borderRadius: 10,
-    margin: 15,
-    backgroundColor: '#cc313d'
-  },
-  sources: {
+  categoriesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    paddingVertical: 15,
   },
-  sourceImage: {
-    height: '100%',
-    borderRadius: 10,
-    resizeMode: 'cover'
+  categoryCard: {
+    width: CATEGORY_WIDTH,
+    height: 120,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  categoryIcon: {
+    width: 48,
+    height: 48,
+    marginBottom: 12,
+  },
+  categoryName: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    textAlign: 'center',
+  },
+  sourcesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  sourceCard: {
+    width: CATEGORY_WIDTH,
+    height: 100,
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  sourceLogo: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  sourceName: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
   }
 });

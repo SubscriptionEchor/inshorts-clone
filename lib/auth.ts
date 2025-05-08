@@ -44,13 +44,13 @@ const SESSION_STORAGE_KEY = 'user_session';
  */
 export function useGoogleAuth() {
     const [request, response, promptAsync] = Google.useAuthRequest({
-        clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID, // Changed from expoClientId
+        clientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
         // Different client IDs for specific platforms
         ...(Platform.OS === 'ios'
-            ? { iosClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID }
+            ? { iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID }
             : {}),
         ...(Platform.OS === 'android'
-            ? { androidClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID }
+            ? { androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID }
             : {}),
         redirectUri: makeRedirectUri({
             scheme: 'inshorts-clone',

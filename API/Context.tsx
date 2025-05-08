@@ -5,20 +5,24 @@ import { userStorage } from "../lib/storage";
 import { AuthContext } from "./AuthContext";
 
 type NewsItem = {
-  source: { id: string; name: string };
+  source_info: {
+    name: string;
+    lang: string;
+    img: string;
+  };
   author: string;
   title: string;
-  description: string;
+  body: string;
   url: string;
-  urlToImage: string;
-  publishedAt: string;
-  content: string;
+  imageurl: string;
+  published_on: number;
+  categories: string;
 };
 
 type NewsType = {
-  articles: NewsItem[];
-  status: string;
-  totalResults: number;
+  Data: NewsItem[];
+  Message: string;
+  Type: number;
 };
 
 type NewsContextType = {
@@ -131,7 +135,7 @@ const Context = ({ children }: ContextProviderProps) => {
     setLoading(true);
     try {
       const response = await axios.get(getNewsAPI(rest));
-      if (response.data && response.data.articles) {
+      if (response.data && response.data.Data) {
         setNews(response.data);
         setIndex(1);
       } else {
@@ -148,7 +152,7 @@ const Context = ({ children }: ContextProviderProps) => {
     setLoading(true);
     try {
       const response = await axios.get(getSourceAPI(source));
-      if (response.data && response.data.articles) {
+      if (response.data && response.data.Data) {
         setNews(response.data);
         setIndex(1);
       } else {
