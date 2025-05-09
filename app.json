@@ -21,13 +21,18 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.inshorts.clone"
+      "bundleIdentifier": "com.echortech.inshortsclone",
+      "buildNumber": "3",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
-      "package": "com.inshorts.clone",
+      "package": "com.echortech.inshortsclone",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#000000",
+        "edgeToEdgeEnabled": true
       }
     },
     "web": {
@@ -42,7 +47,25 @@
         {
           "initialOrientation": "PORTRAIT"
         }
+      ],
+      "./fix-android-build.js",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0",
+            "kotlinVersion": "2.0.21"
+          }
+        }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3a59f5b2-6651-4fb1-992f-789070e49236"
+      }
+    }
   }
 }
